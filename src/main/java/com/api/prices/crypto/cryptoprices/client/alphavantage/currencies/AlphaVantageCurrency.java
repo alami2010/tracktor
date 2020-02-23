@@ -1,0 +1,14 @@
+package com.api.prices.crypto.cryptoprices.client.alphavantage.currencies;
+
+public enum AlphaVantageCurrency {
+
+
+    BTC,ADA, AGI, AION, ARK, AST, BAT, BCD, BCH, BLZ, BNB, BNT, BTG, BTS, CND, CTXC, CVC
+    , DASH, DATA, DCR, DGD, DOGE, EDO, ELF, ENJ, EOS, ETC, ETH, FUN, GAS, GNT, GRS, GTO, GVT, ICX, IOST, IOTA, IOTX,
+    KMD, KNC, LEND, LINK, LOOM, LRC, LSK, LTC, LUN, MANA, MCO, MDA, MITH, NANO, NAS, NCASH, NEO, NULS, OMG, ONT, PIVX, POA,
+    POLY, POWR, PPT, QTUM, RCN, RDN, REP, REQ, RLC, SC, SKY, SNGLS, SNM, SNT, STORJ, STORM, STRAT, STX, SYS, THETA, TNB, TNT, TRX,
+    VIA, VIB, WAN, WAVES, WPR, WTC, XEM, XLM, XMR, XRP, XTZ, XVG, XZC, ZEC, ZEN, ZIL, ZRX
+
+
+
+}
