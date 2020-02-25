@@ -10,8 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.ta4j.core.BaseTimeSeries;
 import org.ta4j.core.TimeSeries;
+import org.ta4j.core.indicators.EMAIndicator;
 import org.ta4j.core.indicators.SMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
+import org.ta4j.core.num.Num;
 
 import java.io.IOException;
 import java.time.ZoneId;
@@ -19,6 +21,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -37,52 +40,36 @@ public class IndicatorTechnicalService {
 
 
         String currency = getCurrentCurrency();
-
+        int nbrMonths = 1 ;
 
         try {
-            CryptoCurrenciesResult cryptoCurrenciesResult = alphaVantageClient.getCryptoCurrencies(CryptoCurrenciesFunction.DIGITAL_CURRENCY_DAILY, Market.USD, currency, OutputSize.COMPACT);
 
-            List<CryptoCurrency> cryptoCurrencies = mapCryptoCurrenciesResult(cryptoCurrenciesResult);
 
-            System.out.println(cryptoCurrenciesResult);
+            List<CryptoCurrency> cryptoCurrencies = getCryptoCurrencies(currency);
+
+            Supplier<Stream<CryptoCurrency>> cryptoCurrencySupplier = () -> cryptoCurrencies.stream().
+                    filter(valideCryptoCurrencyHistoByMonths(nbrMonths));
+
+
+
             TimeSeries series = new BaseTimeSeries.SeriesBuilder().withName("AXP_Stock").build();
-
-
-
-            Date startDate = Date.from(ZonedDateTime.now().minusMonths(1).toInstant());
-
-            Stream<CryptoCurrency> cryptoCurrencyStream = cryptoCurrencies.stream().
-                    filter(cryptoCurrenciesEntry -> cryptoCurrenciesEntry.getDate().after(startDate));
-
-
-
-            Supplier< Stream<CryptoCurrency>> cryptoCurrencySupplier = () ->cryptoCurrencyStream;
-
-
-            forEach(cryptoCurrenciesEntry -> {
-
-                        Date dateHistorian = cryptoCurrenciesEntry.getKey();
-                        CryptoCurrencies cryptoCurrencyHisotrian = cryptoCurrenciesEntry.getValue();
-
-                        series.addBar(ZonedDateTime.ofInstant(dateHistorian.toInstant(),
-                                ZoneId.systemDefault()), cryptoCurrencyHisotrian.getOpen(), cryptoCurrencyHisotrian.getHigh(), cryptoCurrencyHisotrian.getLow(), cryptoCurrencyHisotrian.getClose(), cryptoCurrencyHisotrian.getVolume());
-
-                        System.out.println(cryptoCurrencyHisotrian);
-
-                    });
-
-
+            populateBars(series, cryptoCurrencySupplier);
             ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
 
 
-            // Getting the simple moving average (SMA) of the close price over the last 5 ticks
-            SMAIndicator shortSma = new SMAIndicator(closePrice, 2);
-// Here is the 5-ticks-SMA value at the 42nd index
-            System.out.println("5-ticks-SMA value at the 42nd index: " + shortSma.getValue(2));
 
-// Getting a longer SMA (e.g. over the 30 last ticks)
-            SMAIndicator longSma = new SMAIndicator(closePrice, 2);
-            System.out.println("30-ticks-SMA value at the 42nd index: " + longSma.getValue(28));
+
+
+            int countBars = (int) cryptoCurrencySupplier.get().count();
+            calculateSMA( closePrice, 5, countBars);
+            calculateSMA( closePrice, 10, countBars);
+            calculateSMA( closePrice, 20, countBars);
+
+
+            calculateEMA( closePrice, 5, countBars);
+            calculateEMA( closePrice, 10, countBars);
+            calculateEMA( closePrice, 20, countBars);
+
         } catch (Exception e) {
             System.out.println("ERROR " + currency + " " + e.getMessage());
 
@@ -91,14 +78,53 @@ public class IndicatorTechnicalService {
 
     }
 
+    private Num calculateSMA(ClosePriceIndicator closePrice, int dayMovingAverrage,int nbrBars) {
+        SMAIndicator shortSma = new SMAIndicator(closePrice, dayMovingAverrage);
+        Num result = shortSma.getValue(nbrBars - 1);
+        System.out.println(" SMA  " + dayMovingAverrage + " jours " + result);
+        return result;
+    }
+
+    private Num calculateEMA(ClosePriceIndicator closePrice, int dayMovingAverrage,int nbrBars) {
+        EMAIndicator shortSma = new EMAIndicator(closePrice, dayMovingAverrage);
+        Num result = shortSma.getValue(nbrBars - 1);
+        System.out.println(" EMA  " + dayMovingAverrage + " jours " + result);
+        return result;
+    }
+
+    private List<CryptoCurrency> getCryptoCurrencies(String currency) throws IOException, MissingRequiredQueryParameterException {
+        CryptoCurrenciesResult cryptoCurrenciesResult = alphaVantageClient.getCryptoCurrencies(CryptoCurrenciesFunction.DIGITAL_CURRENCY_DAILY, Market.USD, currency, OutputSize.COMPACT);
+        List<CryptoCurrency> cryptoCurrencies = mapCryptoCurrenciesResult(cryptoCurrenciesResult);
+
+        return cryptoCurrencies;
+    }
+
+    private Predicate<CryptoCurrency> valideCryptoCurrencyHistoByMonths(int nbrMonths) {
+        Date startDate = Date.from(ZonedDateTime.now().minusMonths(nbrMonths).toInstant());
+
+        return cryptoCurrenciesEntry -> cryptoCurrenciesEntry.getDate().after(startDate);
+    }
+
+    private void populateBars(TimeSeries series, Supplier<Stream<CryptoCurrency>> cryptoCurrencySupplier) {
+        cryptoCurrencySupplier.get().forEach(cryptoCurrencyHisotrian -> {
+
+
+            ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(cryptoCurrencyHisotrian.getDate().toInstant(), ZoneId.systemDefault());
+            series.addBar(zonedDateTime, cryptoCurrencyHisotrian.getOpen(), cryptoCurrencyHisotrian.getHigh(), cryptoCurrencyHisotrian.getLow(), cryptoCurrencyHisotrian.getClose(), cryptoCurrencyHisotrian.getVolume());
+
+            System.out.println(cryptoCurrencyHisotrian);
+
+        });
+    }
+
     private List<CryptoCurrency> mapCryptoCurrenciesResult(CryptoCurrenciesResult cryptoCurrenciesResult) {
         List<CryptoCurrency> cryptoCurrencies = new ArrayList<>();
-        cryptoCurrenciesResult.getCryptoCurrencies().forEach( (date, cryptoCur) ->{
+        cryptoCurrenciesResult.getCryptoCurrencies().forEach((date, cryptoCur) -> {
 
-            CryptoCurrency cryptoCurrency = new CryptoCurrency(cryptoCur.getOpen(),cryptoCur.getHigh(),cryptoCur.getLow(),cryptoCur.getClose(),cryptoCur.getVolume(),cryptoCur.getMarketCup(),date);
+            CryptoCurrency cryptoCurrency = new CryptoCurrency(cryptoCur.getOpen(), cryptoCur.getHigh(), cryptoCur.getLow(), cryptoCur.getClose(), cryptoCur.getVolume(), cryptoCur.getMarketCup(), date);
             cryptoCurrencies.add(cryptoCurrency);
 
-        } );
+        });
         return cryptoCurrencies;
     }
 
