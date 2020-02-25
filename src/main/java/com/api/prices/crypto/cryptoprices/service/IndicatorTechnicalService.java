@@ -9,13 +9,18 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.ta4j.core.BaseTimeSeries;
+import org.ta4j.core.Indicator;
 import org.ta4j.core.TimeSeries;
 import org.ta4j.core.indicators.EMAIndicator;
+import org.ta4j.core.indicators.RSIIndicator;
 import org.ta4j.core.indicators.SMAIndicator;
+import org.ta4j.core.indicators.bollinger.BollingerBandsLowerIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.num.Num;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -56,11 +61,13 @@ public class IndicatorTechnicalService {
             populateBars(series, cryptoCurrencySupplier);
             ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
 
-
-
-
-
             int countBars = (int) cryptoCurrencySupplier.get().count();
+
+
+            calculateRSI( closePrice, 5, countBars);
+            calculateRSI( closePrice, 10, countBars);
+            calculateRSI( closePrice, 20, countBars);
+
             calculateSMA( closePrice, 5, countBars);
             calculateSMA( closePrice, 10, countBars);
             calculateSMA( closePrice, 20, countBars);
@@ -70,12 +77,23 @@ public class IndicatorTechnicalService {
             calculateEMA( closePrice, 10, countBars);
             calculateEMA( closePrice, 20, countBars);
 
+
+
+            calculate( closePrice,RSIIndicator.class, 20, countBars);
+
+
         } catch (Exception e) {
             System.out.println("ERROR " + currency + " " + e.getMessage());
-
+            e.printStackTrace();
         }
 
 
+    }
+
+    private void calculateRSI(ClosePriceIndicator closePrice, int dayMovingAverrage,int nbrBars) {
+        RSIIndicator rsiIndicator = new RSIIndicator(closePrice,dayMovingAverrage);
+        Num result = rsiIndicator.getValue(nbrBars - 1);
+        System.out.println(" RSIIndicator  " + dayMovingAverrage + " jours " + result);
     }
 
     private Num calculateSMA(ClosePriceIndicator closePrice, int dayMovingAverrage,int nbrBars) {
@@ -84,6 +102,20 @@ public class IndicatorTechnicalService {
         System.out.println(" SMA  " + dayMovingAverrage + " jours " + result);
         return result;
     }
+
+
+
+    private Num calculate(ClosePriceIndicator closePrice, Class  x , int dayMovingAverrage, int nbrBars) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        Constructor[] allConstructors = x.getDeclaredConstructors();
+
+
+        Indicator shortSma =(Indicator) x.getConstructor().newInstance(closePrice,dayMovingAverrage);
+        Num result =(Num) shortSma.getValue(nbrBars - 1);
+        System.out.println(" SMA  " + dayMovingAverrage + " jours " + result);
+        return result;
+    }
+
+
 
     private Num calculateEMA(ClosePriceIndicator closePrice, int dayMovingAverrage,int nbrBars) {
         EMAIndicator shortSma = new EMAIndicator(closePrice, dayMovingAverrage);
