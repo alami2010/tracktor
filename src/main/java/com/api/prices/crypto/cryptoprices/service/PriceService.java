@@ -1,6 +1,6 @@
 package com.api.prices.crypto.cryptoprices.service;
 
-import com.api.prices.crypto.cryptoprices.client.CoinMarketPlaceClient;
+import com.api.prices.crypto.cryptoprices.client.CoinRestClient;
 import com.api.prices.crypto.cryptoprices.client.pojo.Currency;
 import com.api.prices.crypto.cryptoprices.client.pojo.CurrencyInformation;
 import com.api.prices.crypto.cryptoprices.entity.CurrencyToTrack;
@@ -25,7 +25,7 @@ public class PriceService {
     @Autowired
     private TrackService currencyTrackService;
     @Autowired
-    private CoinMarketPlaceClient pricesRestClient;
+    private CoinRestClient pricesRestClient;
     @Autowired
     private AlertService alertService;
 
@@ -55,7 +55,18 @@ public class PriceService {
         checkPrice(currencyToTrack, priceCurrency, priceCurrency >= currencyToTrack.getMax(), Decision.SELL);
         checkPrice(currencyToTrack, priceCurrency, priceCurrency <= currencyToTrack.getMin(), Decision.BUY);
 
-        logger.info(currencyToTrack.toString() + "\t" + priceCurrency + "\t" + StringUtils.capitalize(slug) + "\t\t\t" + currency.getValue().getQuote().getUSD().getPercent_change_1h() + "\t" + currency.getValue().getQuote().getUSD().getPercent_change_24h());
+        displayConsole(currency, currencyToTrack, priceCurrency, slug);
+
+    }
+
+    private void displayConsole(Map.Entry<String, Currency> currency, CurrencyToTrack currencyToTrack, double priceCurrency, String slug) {
+
+
+
+        String leftAlignFormat = "| %-5s |%-16s | %-10s | %-10s | %-10s | %-10s | %-10s |%n";
+
+        System.out.format(leftAlignFormat, StringUtils.capitalize(currencyToTrack.getName()),priceCurrency ,currencyToTrack.getMin(),currencyToTrack.getMax(), currency.getValue().getQuote().getUSD().getPercent_change_1h() , currency.getValue().getQuote().getUSD().getPercent_change_24h(),currency.getValue().getQuote().getUSD().getPercent_change_7d());
+
 
     }
 
@@ -88,13 +99,14 @@ public class PriceService {
                 marge = currencyToTrack.getMin() - priceCurrency;
                 currencyToTrack.setMin(priceCurrency - marge * MULTIPLY_BIG_MARGE);
                 currencyToTrack.setMax(currencyToTrack.getMax() - marge * MUTIPLY_SMALL_MARGE);
-
                 break;
         }
 
 
         pricesRestClient.updateCurrency(currencyToTrack);
     }
+
+
 
 
 }

@@ -19,9 +19,9 @@ public class TrackService {
 
 
     void trackPriceChangeByRobot(List<CurrencyToTrack> currencyToTracks) {
-        logger.info("Track");
-        String jsonCurrencyToTrack = gson.toJson(currencyToTracks);
-        logger.info(jsonCurrencyToTrack);
+    //    logger.info("Track");
+    //    String jsonCurrencyToTrack = gson.toJson(currencyToTracks);
+     //   logger.info(jsonCurrencyToTrack);
 
     }
 

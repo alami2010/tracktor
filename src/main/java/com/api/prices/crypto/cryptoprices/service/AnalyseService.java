@@ -1,17 +1,20 @@
 package com.api.prices.crypto.cryptoprices.service;
 
-import com.api.prices.crypto.cryptoprices.client.CoinMarketPlaceClient;
+import com.api.prices.crypto.cryptoprices.client.CoinRestClient;
 import com.api.prices.crypto.cryptoprices.client.pojo.Currency;
 import com.api.prices.crypto.cryptoprices.client.pojo.CurrencyInformation;
 import com.api.prices.crypto.cryptoprices.client.pojo.CurrencyInformationStats;
 import com.api.prices.crypto.cryptoprices.entity.BinanceCurrency;
 import com.api.prices.crypto.cryptoprices.entity.CurrencyToTrack;
 import com.api.prices.crypto.cryptoprices.entity.TableHtml;
+import com.api.prices.crypto.cryptoprices.repository.Student;
+import com.api.prices.crypto.cryptoprices.repository.StudentRepository;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,7 +26,11 @@ public class AnalyseService {
     @Autowired
     private AlertService alertService;
     @Autowired
-    private CoinMarketPlaceClient pricesRestClient;
+    private CoinRestClient pricesRestClient;
+
+
+    @Autowired
+    private StudentRepository studentRepository;
 
 
     public void alterCurrentCurrency() {
@@ -82,5 +89,19 @@ public class AnalyseService {
         boolean isDeserveToCheckBy24H = percentChange24h < -7;
         boolean isDeserveToCheckBy7D = percentChange7d < -5;
         return ((isDeserveToCheckBy1H || isDeserveToCheckBy24H) && isDeserveToCheckBy7D);
+    }
+
+    public void redis() {
+
+
+        Student engStudent = new Student(
+                "Eng2015001", "John Doe", Student.Gender.MALE, 1);
+        Student medStudent = new Student(
+                "Med2015001", "Gareth Houston", Student.Gender.MALE, 2);
+        studentRepository.save(engStudent);
+        studentRepository.save(medStudent);
+        List<Student> students = new ArrayList<>();
+         studentRepository.findAll().forEach(students::add);
+
     }
 }

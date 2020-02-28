@@ -32,4 +32,10 @@ public class CryptoCurrencies {
 
     @JsonProperty("market cap (USD)")
     private Double marketCup = null;
+
+
+    @Override
+    public String toString() {
+        return open + "," + high + "," + low + "," + close + "," + volume + "," + marketCup;
+    }
 }

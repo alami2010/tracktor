@@ -1,6 +1,6 @@
 package com.api.prices.crypto.cryptoprices.client.alphavantage;
 
-import com.api.prices.crypto.cryptoprices.client.CoinMarketPlaceClient;
+import com.api.prices.crypto.cryptoprices.client.CoinRestClient;
 import com.api.prices.crypto.cryptoprices.client.alphavantage.batchquote.BatchQuoteRequest;
 import com.api.prices.crypto.cryptoprices.client.alphavantage.batchquote.BatchQuoteResult;
 import com.api.prices.crypto.cryptoprices.client.alphavantage.batchquote.BatchQuoteResultDeserializer;
@@ -28,7 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 
 @Service
 public class AlphaVantageClient implements IAlphaVantageClient {
@@ -36,7 +35,7 @@ public class AlphaVantageClient implements IAlphaVantageClient {
     private AlphaVantageClientConfiguration configuration;
 
     @Autowired
-    private CoinMarketPlaceClient coinMarketPlaceClient;
+    private CoinRestClient coinRestClient;
 
 
 

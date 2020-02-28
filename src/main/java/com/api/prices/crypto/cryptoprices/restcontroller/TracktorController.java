@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/")
-public class PricesCoinMarketCapRest {
+public class TracktorController {
 
     @Autowired
     private PriceService priceService;
@@ -25,6 +25,12 @@ public class PricesCoinMarketCapRest {
     @PostMapping(value = "monitoring")
     public ResponseEntity<?> enableAlertPrices() {
         analyseService.initMonitoringOfStats();
+        return  null;
+    }
+
+    @PostMapping(value = "redis")
+    public ResponseEntity<?> testredis() {
+        analyseService.redis();
         return  null;
     }
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -14,6 +15,9 @@ import java.util.Date;
  */
 @Data
 public class CryptoCurrency {
+
+    private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
+
 
     public CryptoCurrency(double open, double high, double low, double close, double volume, Double marketCup, Date date) {
         this.open = open;
@@ -39,4 +43,9 @@ public class CryptoCurrency {
 
     private Date  date;
 
+
+    @Override
+    public String toString() {
+        return open + "," + high + "," + low + "," + close + "," + volume + "," + marketCup+","+simpleDateFormat.format(date);
+    }
 }

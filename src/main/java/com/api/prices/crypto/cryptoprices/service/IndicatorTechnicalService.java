@@ -4,6 +4,7 @@ import com.api.prices.crypto.cryptoprices.client.alphavantage.configuration.IAlp
 import com.api.prices.crypto.cryptoprices.client.alphavantage.currencies.*;
 import com.api.prices.crypto.cryptoprices.client.alphavantage.request.OutputSize;
 import com.api.prices.crypto.cryptoprices.client.alphavantage.timeseries.MissingRequiredQueryParameterException;
+import com.api.prices.crypto.cryptoprices.entity.Strategy;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,10 +12,6 @@ import org.springframework.stereotype.Service;
 import org.ta4j.core.BaseTimeSeries;
 import org.ta4j.core.Indicator;
 import org.ta4j.core.TimeSeries;
-import org.ta4j.core.indicators.EMAIndicator;
-import org.ta4j.core.indicators.RSIIndicator;
-import org.ta4j.core.indicators.SMAIndicator;
-import org.ta4j.core.indicators.bollinger.BollingerBandsLowerIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.num.Num;
 
@@ -41,91 +38,94 @@ public class IndicatorTechnicalService {
     @Autowired
     private IAlphaVantageClient alphaVantageClient;
 
-    public void getNewCurrentCurrencyAndAnalyse() throws IOException, MissingRequiredQueryParameterException {
+    @Autowired
+    private ServerClientService serverClientService;
 
 
-        String currency = getCurrentCurrency();
-        int nbrMonths = 1 ;
-
-        try {
+    // cette fonction doit tourné une seul fois par jour
+    public void getNewCurrentCurrency() throws IOException, MissingRequiredQueryParameterException {
 
 
-            List<CryptoCurrency> cryptoCurrencies = getCryptoCurrencies(currency);
+        int nbrMonths = 1;
 
-            Supplier<Stream<CryptoCurrency>> cryptoCurrencySupplier = () -> cryptoCurrencies.stream().
-                    filter(valideCryptoCurrencyHistoByMonths(nbrMonths));
+        Stream.of(AlphaVantageCurrency.values()).forEach(alphaVantageCurrency -> {
 
+            try {
 
-
-            TimeSeries series = new BaseTimeSeries.SeriesBuilder().withName("AXP_Stock").build();
-            populateBars(series, cryptoCurrencySupplier);
-            ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
-
-            int countBars = (int) cryptoCurrencySupplier.get().count();
+                String currency = alphaVantageCurrency.name();
+                System.out.println(currency);
 
 
-            calculateRSI( closePrice, 5, countBars);
-            calculateRSI( closePrice, 10, countBars);
-            calculateRSI( closePrice, 20, countBars);
+                List<CryptoCurrency> cryptoCurrenciesByDay = getCryptoCurrencies(currency, CryptoCurrenciesFunction.DIGITAL_CURRENCY_DAILY);
+                List<CryptoCurrency> cryptoCurrenciesByWeek = getCryptoCurrencies(currency, CryptoCurrenciesFunction.DIGITAL_CURRENCY_WEEKLY);
 
-            calculateSMA( closePrice, 5, countBars);
-            calculateSMA( closePrice, 10, countBars);
-            calculateSMA( closePrice, 20, countBars);
+                Supplier<Stream<CryptoCurrency>> cryptoCurrencySupplierDays = getValidTimeSeries(nbrMonths, cryptoCurrenciesByDay);
+                Supplier<Stream<CryptoCurrency>> cryptoCurrencySupplierWeeks = getValidTimeSeries(nbrMonths, cryptoCurrenciesByWeek);
 
 
-            calculateEMA( closePrice, 5, countBars);
-            calculateEMA( closePrice, 10, countBars);
-            calculateEMA( closePrice, 20, countBars);
+                serverClientService.saveTimeSeries(currency, cryptoCurrencySupplierDays, CryptoCurrenciesFunction.DIGITAL_CURRENCY_DAILY);
+
+                serverClientService.saveTimeSeries(currency, cryptoCurrencySupplierWeeks, CryptoCurrenciesFunction.DIGITAL_CURRENCY_WEEKLY);
 
 
+                // attendre une minute
+                Thread.sleep(1000 * 60);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
-            calculate( closePrice,RSIIndicator.class, 20, countBars);
+
+        });
 
 
-        } catch (Exception e) {
-            System.out.println("ERROR " + currency + " " + e.getMessage());
-            e.printStackTrace();
+    }
+
+    private void runStratetigies() {
+        TimeSeries series = new BaseTimeSeries.SeriesBuilder().withName("YSF_HOPE").build();
+
+        int countBars = populateBars(series, null);
+        ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
+
+
+        List<Strategy> strategies = StategyBuilder.getStrategies();
+
+
+        strategies.stream().forEach(strategy -> {
+            try {
+                calculate(strategy, closePrice, countBars, null);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        });
+    }
+
+    private Supplier<Stream<CryptoCurrency>> getValidTimeSeries(int nbrMonths, List<CryptoCurrency> cryptoCurrenciesByDay) {
+        return () -> cryptoCurrenciesByDay.stream().
+                filter(valideCryptoCurrencyHistoByMonths(nbrMonths));
+    }
+
+
+    private Num calculate(Strategy strategy, ClosePriceIndicator closePrice, int nbrBars, String currency) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        Constructor[] allConstructors = strategy.getIndicator().getDeclaredConstructors();
+        Indicator indicator = (Indicator) allConstructors[0].newInstance(closePrice, strategy.getLength());
+        Num result = (Num) indicator.getValue(nbrBars - 1);
+
+
+        if (strategy.getPredicate() != null && strategy.getPredicate().test(result.intValue())) {
+
+            System.out.println("DONE ALERTE" + currency + "  " + strategy.getIndicator().getSimpleName() + "   " + strategy.getLength() + " jours " + result);
+
         }
 
 
-    }
-
-    private void calculateRSI(ClosePriceIndicator closePrice, int dayMovingAverrage,int nbrBars) {
-        RSIIndicator rsiIndicator = new RSIIndicator(closePrice,dayMovingAverrage);
-        Num result = rsiIndicator.getValue(nbrBars - 1);
-        System.out.println(" RSIIndicator  " + dayMovingAverrage + " jours " + result);
-    }
-
-    private Num calculateSMA(ClosePriceIndicator closePrice, int dayMovingAverrage,int nbrBars) {
-        SMAIndicator shortSma = new SMAIndicator(closePrice, dayMovingAverrage);
-        Num result = shortSma.getValue(nbrBars - 1);
-        System.out.println(" SMA  " + dayMovingAverrage + " jours " + result);
+        System.out.println(strategy.getIndicator().getSimpleName() + "   " + strategy.getLength() + " jours " + result);
         return result;
     }
 
 
-
-    private Num calculate(ClosePriceIndicator closePrice, Class  x , int dayMovingAverrage, int nbrBars) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-        Constructor[] allConstructors = x.getDeclaredConstructors();
-
-
-        Indicator shortSma =(Indicator) x.getConstructor().newInstance(closePrice,dayMovingAverrage);
-        Num result =(Num) shortSma.getValue(nbrBars - 1);
-        System.out.println(" SMA  " + dayMovingAverrage + " jours " + result);
-        return result;
-    }
-
-
-
-    private Num calculateEMA(ClosePriceIndicator closePrice, int dayMovingAverrage,int nbrBars) {
-        EMAIndicator shortSma = new EMAIndicator(closePrice, dayMovingAverrage);
-        Num result = shortSma.getValue(nbrBars - 1);
-        System.out.println(" EMA  " + dayMovingAverrage + " jours " + result);
-        return result;
-    }
-
-    private List<CryptoCurrency> getCryptoCurrencies(String currency) throws IOException, MissingRequiredQueryParameterException {
-        CryptoCurrenciesResult cryptoCurrenciesResult = alphaVantageClient.getCryptoCurrencies(CryptoCurrenciesFunction.DIGITAL_CURRENCY_DAILY, Market.USD, currency, OutputSize.COMPACT);
+    private List<CryptoCurrency> getCryptoCurrencies(String currency, CryptoCurrenciesFunction cryptoCurrenciesFunction) throws IOException, MissingRequiredQueryParameterException {
+        CryptoCurrenciesResult cryptoCurrenciesResult = alphaVantageClient.getCryptoCurrencies(cryptoCurrenciesFunction, Market.USD, currency, OutputSize.COMPACT);
         List<CryptoCurrency> cryptoCurrencies = mapCryptoCurrenciesResult(cryptoCurrenciesResult);
 
         return cryptoCurrencies;
@@ -137,16 +137,18 @@ public class IndicatorTechnicalService {
         return cryptoCurrenciesEntry -> cryptoCurrenciesEntry.getDate().after(startDate);
     }
 
-    private void populateBars(TimeSeries series, Supplier<Stream<CryptoCurrency>> cryptoCurrencySupplier) {
+    private int populateBars(TimeSeries series, Supplier<Stream<CryptoCurrency>> cryptoCurrencySupplier) {
         cryptoCurrencySupplier.get().forEach(cryptoCurrencyHisotrian -> {
 
 
             ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(cryptoCurrencyHisotrian.getDate().toInstant(), ZoneId.systemDefault());
             series.addBar(zonedDateTime, cryptoCurrencyHisotrian.getOpen(), cryptoCurrencyHisotrian.getHigh(), cryptoCurrencyHisotrian.getLow(), cryptoCurrencyHisotrian.getClose(), cryptoCurrencyHisotrian.getVolume());
 
-            System.out.println(cryptoCurrencyHisotrian);
+
+            //  System.out.println(cryptoCurrencyHisotrian);
 
         });
+        return (int) cryptoCurrencySupplier.get().count();
     }
 
     private List<CryptoCurrency> mapCryptoCurrenciesResult(CryptoCurrenciesResult cryptoCurrenciesResult) {
@@ -162,10 +164,12 @@ public class IndicatorTechnicalService {
 
     private String getCurrentCurrency() {
 
-        majIndexCurrentCurrency();
-        return AlphaVantageCurrency.BTC.name();
 
-        //    return alphaVantageCurrencies[indexCurrentCurrency].name();
+        //  return AlphaVantageCurrency.BTC.name();
+
+        String symbol = alphaVantageCurrencies[indexCurrentCurrency].name();
+        majIndexCurrentCurrency();
+        return symbol;
     }
 
     private void majIndexCurrentCurrency() {
