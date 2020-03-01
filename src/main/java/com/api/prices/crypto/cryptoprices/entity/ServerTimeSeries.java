@@ -1,6 +1,7 @@
 package com.api.prices.crypto.cryptoprices.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.annotations.SerializedName;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,8 +12,8 @@ import lombok.Data;
 public class ServerTimeSeries {
 
     String symbol;
-    @JsonProperty("time_series")
+    @SerializedName("time_series")
     String timeSeries;
-    @JsonProperty("update_date")
+    @SerializedName("update_date")
     String updateDate;
 }

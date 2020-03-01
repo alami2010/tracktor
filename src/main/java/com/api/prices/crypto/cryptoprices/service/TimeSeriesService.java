@@ -29,9 +29,8 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 @Service
-public class IndicatorTechnicalService {
-    private static Logger logger = LogManager.getLogger(IndicatorTechnicalService.class);
-
+public class TimeSeriesService {
+    private static Logger logger = LogManager.getLogger(TimeSeriesService.class);
 
 
     @Autowired
@@ -43,6 +42,53 @@ public class IndicatorTechnicalService {
     private Map<String, List<CryptoCurrency>> timeSeriesDaily;
     private Map<String, List<CryptoCurrency>> timeSeriesWeekly;
 
+    // cette fonction doit tourné une seul fois par jour
+    public void loadTimeSeries() throws IOException, MissingRequiredQueryParameterException {
+
+
+        int nbrMonths = 1;
+
+        Stream.of(AlphaVantageCurrency.values()).forEach(alphaVantageCurrency -> {
+
+            try {
+
+                String currency = alphaVantageCurrency.name();
+                System.out.println(currency);
+
+
+                List<CryptoCurrency> cryptoCurrenciesByDay = getCryptoCurrencies(currency, CryptoCurrenciesFunction.DIGITAL_CURRENCY_DAILY);
+                List<CryptoCurrency> cryptoCurrenciesByWeek = getCryptoCurrencies(currency, CryptoCurrenciesFunction.DIGITAL_CURRENCY_WEEKLY);
+
+                Supplier<Stream<CryptoCurrency>> cryptoCurrencySupplierDays = getValidTimeSeries(nbrMonths, cryptoCurrenciesByDay);
+                Supplier<Stream<CryptoCurrency>> cryptoCurrencySupplierWeeks = getValidTimeSeries(nbrMonths, cryptoCurrenciesByWeek);
+
+
+                serverClientService.saveTimeSeries(currency, cryptoCurrencySupplierDays, CryptoCurrenciesFunction.DIGITAL_CURRENCY_DAILY);
+                serverClientService.saveTimeSeries(currency, cryptoCurrencySupplierWeeks, CryptoCurrenciesFunction.DIGITAL_CURRENCY_WEEKLY);
+
+
+                // attendre une minute
+                Thread.sleep(1000 * 60);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+
+        });
+
+
+    }
+
+    // cette fonction doit recupper les donneés  au demarage une fois par jour
+
+    public synchronized  void getTimeSeries() throws IOException, MissingRequiredQueryParameterException {
+
+            timeSeriesDaily = serverClientService.getTimeSeries(CryptoCurrenciesFunction.DIGITAL_CURRENCY_DAILY);
+
+            timeSeriesWeekly = serverClientService.getTimeSeries(CryptoCurrenciesFunction.DIGITAL_CURRENCY_WEEKLY);
+
+
+    }
 
     private void runStratetigies() {
         TimeSeries series = new BaseTimeSeries.SeriesBuilder().withName("YSF_HOPE").build();
@@ -64,6 +110,10 @@ public class IndicatorTechnicalService {
         });
     }
 
+    private Supplier<Stream<CryptoCurrency>> getValidTimeSeries(int nbrMonths, List<CryptoCurrency> cryptoCurrenciesByDay) {
+        return () -> cryptoCurrenciesByDay.stream().
+                filter(valideCryptoCurrencyHistoByMonths(nbrMonths));
+    }
 
 
     private Num calculate(Strategy strategy, ClosePriceIndicator closePrice, int nbrBars, String currency) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
@@ -121,7 +171,6 @@ public class IndicatorTechnicalService {
         });
         return cryptoCurrencies;
     }
-
 
 
 

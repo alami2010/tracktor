@@ -40,6 +40,12 @@ public class PriceService {
         String currencies = currencyToTracks.stream().map(currencyToTrack -> currencyToTrack.getName()).sorted().collect(Collectors.joining(","));
         CurrencyInformation currencyInfo = pricesRestClient.getOneCurrenciesInfo(currencies);
         if (currencyInfo != null && currencyInfo.getData() != null) {
+
+            double sumDouble1H = currencyInfo.getData().entrySet().stream().mapToDouble(currency -> currency.getValue().getQuote().getUSD().getPercent_change_1h()).sum();
+            double sumDouble24H = currencyInfo.getData().entrySet().stream().mapToDouble(currency -> currency.getValue().getQuote().getUSD().getPercent_change_24h()).sum();
+            double sumDouble7D = currencyInfo.getData().entrySet().stream().mapToDouble(currency -> currency.getValue().getQuote().getUSD().getPercent_change_7d()).sum();
+
+            System.out.println("Somme 1h= "+sumDouble1H +" 24h= "+sumDouble24H+" 7D= "+sumDouble7D);
             currencyInfo.getData().entrySet().stream().forEach(currency -> {
                 checkPrice(currency);
             });

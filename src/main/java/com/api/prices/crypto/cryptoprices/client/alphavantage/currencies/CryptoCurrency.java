@@ -16,10 +16,10 @@ import java.util.Date;
 @Data
 public class CryptoCurrency {
 
-    private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
+    public static  SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
 
 
-    public CryptoCurrency(double open, double high, double low, double close, double volume, Double marketCup, Date date) {
+    public CryptoCurrency(double open, double high, double low, double close, double volume, double marketCup, Date date) {
         this.open = open;
         this.high = high;
         this.low = low;
@@ -39,7 +39,7 @@ public class CryptoCurrency {
 
     private double volume;
 
-    private Double marketCup = null;
+    private double marketCup;
 
     private Date  date;
 

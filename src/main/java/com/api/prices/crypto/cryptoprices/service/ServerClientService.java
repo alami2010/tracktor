@@ -7,7 +7,10 @@ import com.api.prices.crypto.cryptoprices.entity.ServerTimeSeries;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.ParseException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -44,19 +47,34 @@ public class ServerClientService {
     }
 
 
-    //todo CryptoCurrency is object otherwise serverTimeSeries is a list of  :)
-    public Supplier<Stream<CryptoCurrency>> getTimeSeries(CryptoCurrenciesFunction digitalCurrency) {
+    public Map<String,List<CryptoCurrency>> getTimeSeries(CryptoCurrenciesFunction digitalCurrency) {
+        Map<String,List<CryptoCurrency>> mapServerTimeSeries = new HashMap<>();
 
 
-        List<ServerTimeSeries> serverTimeSeries = pricesRestClient.geTimeSeries(digitalCurrency.name());
+        List<ServerTimeSeries> serverTimeSeriesList = pricesRestClient.geTimeSeries(digitalCurrency.name());
 
-        Supplier<Stream<CryptoCurrency>> timeSeriesSupplier = () -> serverTimeSeries.stream().map(serverTimeSeries1 -> mapServerTimeSeriesToCryptoCurrency(serverTimeSeries1));
+        serverTimeSeriesList.stream().forEach(serverTimeSeries -> mapServerTimeSeriesToCryptoCurrency(serverTimeSeries,mapServerTimeSeries));
 
 
-        return timeSeriesSupplier;
+        return mapServerTimeSeries;
     }
 
-    private CryptoCurrency mapServerTimeSeriesToCryptoCurrency(ServerTimeSeries serverTimeSeries1) {
-        return null;
+    private void mapServerTimeSeriesToCryptoCurrency(ServerTimeSeries serverTimeSeries , Map<String,List<CryptoCurrency>> listMap) {
+        String[] timeSeries = serverTimeSeries.getTimeSeries().split(";");
+        List<CryptoCurrency> cryptoCurrencies = Stream.of(timeSeries).map(timeSerie -> {
+            String[] timeSeriesArray = timeSerie.split(",");
+            try {
+                return new CryptoCurrency(Double.valueOf(timeSeriesArray[0]), Double.valueOf(timeSeriesArray[1]),
+                        Double.valueOf(timeSeriesArray[2]), Double.valueOf(timeSeriesArray[3]), Double.valueOf(timeSeriesArray[4]),
+                        Double.valueOf(timeSeriesArray[5]), CryptoCurrency.simpleDateFormat.parse(timeSeriesArray[6]));
+            } catch (ParseException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }).collect(Collectors.toList());
+
+        if(cryptoCurrencies != null )
+            listMap.put(serverTimeSeries.getSymbol(),cryptoCurrencies);
+
     }
 }
