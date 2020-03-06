@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -22,6 +23,8 @@ public class PriceService {
     public static final double MUTIPLY_SMALL_MARGE = 1.3;
     private static Logger logger = LogManager.getLogger(PriceService.class);
     List<CurrencyToTrack> currencyToTracks = null;
+
+
     @Autowired
     private TrackService currencyTrackService;
     @Autowired
@@ -30,14 +33,12 @@ public class PriceService {
     private AlertService alertService;
 
 
-
-
     public void initMonitoringOfPrice() {
         logger.info(" ===> Monitoring price <=== ");
 
-        chargerCurrencyToTrack();
+
         currencyTrackService.trackPriceChangeByRobot(currencyToTracks);
-        String currencies = currencyToTracks.stream().map(currencyToTrack -> currencyToTrack.getName()).sorted().collect(Collectors.joining(","));
+        String currencies = getCurrencyToTracks().stream().map(currencyToTrack -> currencyToTrack.getName()).sorted().collect(Collectors.joining(","));
         CurrencyInformation currencyInfo = pricesRestClient.getOneCurrenciesInfo(currencies);
         if (currencyInfo != null && currencyInfo.getData() != null) {
 
@@ -45,12 +46,19 @@ public class PriceService {
             double sumDouble24H = currencyInfo.getData().entrySet().stream().mapToDouble(currency -> currency.getValue().getQuote().getUSD().getPercent_change_24h()).sum();
             double sumDouble7D = currencyInfo.getData().entrySet().stream().mapToDouble(currency -> currency.getValue().getQuote().getUSD().getPercent_change_7d()).sum();
 
-            System.out.println("Somme 1h= "+sumDouble1H +" 24h= "+sumDouble24H+" 7D= "+sumDouble7D);
+            System.out.println("Somme 1h= " + sumDouble1H + " 24h= " + sumDouble24H + " 7D= " + sumDouble7D);
             currencyInfo.getData().entrySet().stream().forEach(currency -> {
                 checkPrice(currency);
             });
         }
         currencyTrackService.trackPriceChangeByRobot(currencyToTracks);
+    }
+
+    // todo la date pour rechercher pas une seul fois
+    private List<CurrencyToTrack> getCurrencyToTracks() {
+        if (currencyToTracks == null) currencyToTracks = pricesRestClient.getCurrencyToTrack();
+
+        return currencyToTracks;
     }
 
     private void checkPrice(Map.Entry<String, Currency> currency) {
@@ -68,18 +76,15 @@ public class PriceService {
     private void displayConsole(Map.Entry<String, Currency> currency, CurrencyToTrack currencyToTrack, double priceCurrency, String slug) {
 
 
-
         String leftAlignFormat = "| %-5s |%-16s | %-10s | %-10s | %-10s | %-10s | %-10s |%n";
 
-        System.out.format(leftAlignFormat, StringUtils.capitalize(currencyToTrack.getName()),priceCurrency ,currencyToTrack.getMin(),currencyToTrack.getMax(), currency.getValue().getQuote().getUSD().getPercent_change_1h() , currency.getValue().getQuote().getUSD().getPercent_change_24h(),currency.getValue().getQuote().getUSD().getPercent_change_7d());
+        System.out.format(leftAlignFormat, StringUtils.capitalize(currencyToTrack.getName()), priceCurrency, currencyToTrack.getMin(), currencyToTrack.getMax(), currency.getValue().getQuote().getUSD().getPercent_change_1h(), currency.getValue().getQuote().getUSD().getPercent_change_24h(), currency.getValue().getQuote().getUSD().getPercent_change_7d());
 
 
     }
 
 
-    private void chargerCurrencyToTrack() {
-        if (currencyToTracks == null) currencyToTracks = pricesRestClient.getCurrencyToTrack();
-    }
+
 
     private CurrencyToTrack getCurrencyToTrackByKey(List<CurrencyToTrack> currencyToTracks, String key) {
         return currencyToTracks.stream().filter(currencyToTrack -> currencyToTrack.getName().equals(key)).findFirst().get();
@@ -88,8 +93,10 @@ public class PriceService {
 
     private void checkPrice(CurrencyToTrack currencyToTrack, double priceCurrency, boolean isDecisionChecked, Decision decision) {
         if (isDecisionChecked) {
-            alertService.alert(priceCurrency, currencyToTrack, decision);
+            CurrencyToTrack oldCurrencyToTrack = currencyToTrack.duplicate();
             updateCurrencyToTrack(currencyToTrack, decision, priceCurrency);
+            alertService.alert(priceCurrency, oldCurrencyToTrack, currencyToTrack, decision);
+
         }
     }
 
@@ -111,8 +118,6 @@ public class PriceService {
 
         pricesRestClient.updateCurrency(currencyToTrack);
     }
-
-
 
 
 }

@@ -19,13 +19,13 @@ public class AlertService {
     @Autowired
     private HTMLGeneratorService HTMLGeneratorService;
     final String SUBJECT_TO_SEND = "%3s  %1s";
-    final String MESSAGE_TO_SEND = "%3s  %1s  price %2s ";
+    final String MESSAGE_TO_SEND = "%3s  %1s  price %2s </br>\n %s ";
 
-    public void alert(double alertPrice, CurrencyToTrack id, Decision decision) {
+    public void alert(double alertPrice, CurrencyToTrack newCurrencyToTrack, CurrencyToTrack oldCurrencyToTrack, Decision decision) {
 
 
-        String subject = String.format(SUBJECT_TO_SEND, decision.toString(),id.getName());
-        String message = String.format(MESSAGE_TO_SEND, decision.toString(), id.toString(), String.valueOf(alertPrice));
+        String subject = String.format(SUBJECT_TO_SEND, decision.toString(),oldCurrencyToTrack.getName());
+        String message = String.format(MESSAGE_TO_SEND, decision.toString(), oldCurrencyToTrack.toString(), String.valueOf(alertPrice),newCurrencyToTrack);
 
         sendMail.sendMail(subject, message, false);
     }

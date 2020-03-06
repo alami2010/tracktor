@@ -43,7 +43,7 @@ public class TimeSeriesService {
     private Map<String, List<CryptoCurrency>> timeSeriesWeekly;
 
     // cette fonction doit tourné une seul fois par jour
-    public void loadTimeSeries() throws IOException, MissingRequiredQueryParameterException {
+    public void loadTimeSeries() {
 
 
         int nbrMonths = 1;
@@ -67,8 +67,8 @@ public class TimeSeriesService {
                 serverClientService.saveTimeSeries(currency, cryptoCurrencySupplierWeeks, CryptoCurrenciesFunction.DIGITAL_CURRENCY_WEEKLY);
 
 
-                // attendre une minute
-                Thread.sleep(1000 * 60);
+                // attendre deux minute
+                Thread.sleep(1000 * 60 * 2);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -90,48 +90,13 @@ public class TimeSeriesService {
 
     }
 
-    private void runStratetigies() {
-        TimeSeries series = new BaseTimeSeries.SeriesBuilder().withName("YSF_HOPE").build();
 
-        int countBars = populateBars(series, null);
-        ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
-
-
-        List<Strategy> strategies = StategyBuilder.getStrategies();
-
-
-        strategies.stream().forEach(strategy -> {
-            try {
-                calculate(strategy, closePrice, countBars, null);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-        });
-    }
 
     private Supplier<Stream<CryptoCurrency>> getValidTimeSeries(int nbrMonths, List<CryptoCurrency> cryptoCurrenciesByDay) {
         return () -> cryptoCurrenciesByDay.stream().
                 filter(valideCryptoCurrencyHistoByMonths(nbrMonths));
     }
 
-
-    private Num calculate(Strategy strategy, ClosePriceIndicator closePrice, int nbrBars, String currency) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-        Constructor[] allConstructors = strategy.getIndicator().getDeclaredConstructors();
-        Indicator indicator = (Indicator) allConstructors[0].newInstance(closePrice, strategy.getLength());
-        Num result = (Num) indicator.getValue(nbrBars - 1);
-
-
-        if (strategy.getPredicate() != null && strategy.getPredicate().test(result.intValue())) {
-
-            System.out.println("DONE ALERTE" + currency + "  " + strategy.getIndicator().getSimpleName() + "   " + strategy.getLength() + " jours " + result);
-
-        }
-
-
-        System.out.println(strategy.getIndicator().getSimpleName() + "   " + strategy.getLength() + " jours " + result);
-        return result;
-    }
 
 
     private List<CryptoCurrency> getCryptoCurrencies(String currency, CryptoCurrenciesFunction cryptoCurrenciesFunction) throws IOException, MissingRequiredQueryParameterException {
@@ -147,19 +112,7 @@ public class TimeSeriesService {
         return cryptoCurrenciesEntry -> cryptoCurrenciesEntry.getDate().after(startDate);
     }
 
-    private int populateBars(TimeSeries series, Supplier<Stream<CryptoCurrency>> cryptoCurrencySupplier) {
-        cryptoCurrencySupplier.get().forEach(cryptoCurrencyHisotrian -> {
 
-
-            ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(cryptoCurrencyHisotrian.getDate().toInstant(), ZoneId.systemDefault());
-            series.addBar(zonedDateTime, cryptoCurrencyHisotrian.getOpen(), cryptoCurrencyHisotrian.getHigh(), cryptoCurrencyHisotrian.getLow(), cryptoCurrencyHisotrian.getClose(), cryptoCurrencyHisotrian.getVolume());
-
-
-            //  System.out.println(cryptoCurrencyHisotrian);
-
-        });
-        return (int) cryptoCurrencySupplier.get().count();
-    }
 
     private List<CryptoCurrency> mapCryptoCurrenciesResult(CryptoCurrenciesResult cryptoCurrenciesResult) {
         List<CryptoCurrency> cryptoCurrencies = new ArrayList<>();

@@ -33,6 +33,9 @@ public class IndicatorTechnicalService {
     private static Logger logger = LogManager.getLogger(IndicatorTechnicalService.class);
 
 
+    //todo
+    //Buy signals are given when the 21-day MA moves above the 40-day MA and when the 40-day MA is advancing.
+    //Sell signals are given when the 21-day MA moves below the 40-day MA and when the 40-day MA is declining.
 
     @Autowired
     private IAlphaVantageClient alphaVantageClient;
@@ -51,7 +54,8 @@ public class IndicatorTechnicalService {
         ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
 
 
-        List<Strategy> strategies = StategyBuilder.getStrategies();
+        // todo price
+        List<Strategy> strategies = StategyBuilder.generateStrategies(0);
 
 
         strategies.stream().forEach(strategy -> {

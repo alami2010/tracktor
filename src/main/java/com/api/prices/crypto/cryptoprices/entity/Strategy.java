@@ -15,9 +15,10 @@ import java.util.function.Predicate;
 public class Strategy {
 
 
-    Class indicator;
-    int length ;
-    Predicate<Integer> predicate;
-    BiPredicate<Num,Number> biPredicate;
+    private Class indicator;
+    private int length ;
+    private Predicate<Integer> predicate;
+    private BiPredicate<Num,Number> biPredicate;
+    private Decision  decision;
 
 }

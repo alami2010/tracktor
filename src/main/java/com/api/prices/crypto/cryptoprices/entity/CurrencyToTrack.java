@@ -42,4 +42,8 @@ public class CurrencyToTrack {
                 ", max=" + max +
                 ", ";
     }
+
+    public CurrencyToTrack duplicate() {
+        return new CurrencyToTrack(name, min, max);
+    }
 }

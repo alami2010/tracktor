@@ -1,11 +1,9 @@
 package com.api.prices.crypto.cryptoprices.utils;
 
-import com.api.prices.crypto.cryptoprices.client.CoinRestClient;
-import com.api.prices.crypto.cryptoprices.client.alphavantage.batchquote.InvalidSymbolLengthException;
 import com.api.prices.crypto.cryptoprices.client.alphavantage.timeseries.MissingRequiredQueryParameterException;
 import com.api.prices.crypto.cryptoprices.service.AnalyseService;
-import com.api.prices.crypto.cryptoprices.service.TimeSeriesService;
 import com.api.prices.crypto.cryptoprices.service.PriceService;
+import com.api.prices.crypto.cryptoprices.service.TimeSeriesService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +11,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 
 
 @Component
@@ -30,38 +27,33 @@ public class SchedulingTasks {
     private AnalyseService analyseService;
 
 
-
-
     @Autowired
     private TimeSeriesService timeSeriesService;
 
 
-
-
-   @Scheduled(fixedRate = MINUTE * 5)
+    @Scheduled(fixedRate = MINUTE * 5)
     public void reportPrice() {
 
         logger.info("reportPrice");
         priceService.initMonitoringOfPrice();
 
-   }
+    }
 
     @Scheduled(fixedRate = HOUR * 6)
     public void reportStats() {
 
-         logger.info("reportStats");
-         analyseService.initMonitoringOfStats();
+        logger.info("reportStats");
+        analyseService.initMonitoringOfStats();
         logger.info("reportStats End");
 
 
     }
 
 
-
     //@Scheduled(fixedRate = MINUTE * 1)
 
-    @Scheduled(cron = "0 12 17 * * ?")
-    public void loadTimeSeries() throws IOException, MissingRequiredQueryParameterException, InvalidSymbolLengthException, URISyntaxException {
+    @Scheduled(cron = "0 01 00 * * ?")
+    public void loadTimeSeries() {
         logger.info("loadTimeSeries ");
 
         timeSeriesService.loadTimeSeries();
@@ -71,8 +63,8 @@ public class SchedulingTasks {
     }
 
 
-    @Scheduled(cron = "0 12 17 * * ?")
-    public void getTimeSeries() throws IOException, MissingRequiredQueryParameterException, InvalidSymbolLengthException, URISyntaxException {
+    @Scheduled(cron = "0 4 17 * * ?")
+    public void getTimeSeries() throws IOException, MissingRequiredQueryParameterException {
         logger.info("getTimeSeries ");
 
         timeSeriesService.getTimeSeries();
@@ -81,7 +73,6 @@ public class SchedulingTasks {
 
 
     }
-    
-    
+
 
 }
