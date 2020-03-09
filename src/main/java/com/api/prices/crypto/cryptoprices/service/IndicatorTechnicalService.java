@@ -1,10 +1,8 @@
 package com.api.prices.crypto.cryptoprices.service;
 
 import com.api.prices.crypto.cryptoprices.client.alphavantage.configuration.IAlphaVantageClient;
-import com.api.prices.crypto.cryptoprices.client.alphavantage.currencies.*;
-import com.api.prices.crypto.cryptoprices.client.alphavantage.request.OutputSize;
-import com.api.prices.crypto.cryptoprices.client.alphavantage.timeseries.MissingRequiredQueryParameterException;
-import com.api.prices.crypto.cryptoprices.entity.Strategy;
+import com.api.prices.crypto.cryptoprices.client.alphavantage.currencies.CryptoCurrency;
+import com.api.prices.crypto.cryptoprices.entity.StrategyRule;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,18 +13,12 @@ import org.ta4j.core.TimeSeries;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.num.Num;
 
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 @Service
 public class IndicatorTechnicalService {
@@ -47,86 +39,61 @@ public class IndicatorTechnicalService {
     private Map<String, List<CryptoCurrency>> timeSeriesWeekly;
 
 
-    private void runStratetigies() {
+    private void runStratetigies(String currency, List<CryptoCurrency> cryptoCurrencySupplier) {
         TimeSeries series = new BaseTimeSeries.SeriesBuilder().withName("YSF_HOPE").build();
 
-        int countBars = populateBars(series, null);
+        int countBars = populateBars(series, cryptoCurrencySupplier);
         ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
 
 
         // todo price
-        List<Strategy> strategies = StategyBuilder.generateStrategies(0);
+        List<StrategyRule> strategies = StategyRuleBuilder.generateRuleStrategies(0);
 
-
-        strategies.stream().forEach(strategy -> {
+        strategies.stream().map(strategyRule -> {
             try {
-                calculate(strategy, closePrice, countBars, null);
+
+                return  calculate(strategyRule, closePrice, countBars, currency);
+
+
             } catch (Exception e) {
                 e.printStackTrace();
+                return null;
             }
 
         });
     }
 
 
-
-    private Num calculate(Strategy strategy, ClosePriceIndicator closePrice, int nbrBars, String currency) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-        Constructor[] allConstructors = strategy.getIndicator().getDeclaredConstructors();
-        Indicator indicator = (Indicator) allConstructors[0].newInstance(closePrice, strategy.getLength());
+    private Num calculate(StrategyRule strategyRule, Indicator closePrice, int nbrBars, String currency) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+        Constructor[] allConstructors = strategyRule.getIndicator().getDeclaredConstructors();
+        Indicator indicator = (Indicator) allConstructors[0].newInstance(closePrice, strategyRule.getLength());
         Num result = (Num) indicator.getValue(nbrBars - 1);
 
 
-        if (strategy.getPredicate() != null && strategy.getPredicate().test(result.intValue())) {
+        if (strategyRule.getPredicate() != null && strategyRule.getPredicate().test(result.intValue())) {
 
-            System.out.println("DONE ALERTE" + currency + "  " + strategy.getIndicator().getSimpleName() + "   " + strategy.getLength() + " jours " + result);
+            System.out.println("DONE ALERTE" + currency + "  " + strategyRule.getIndicator().getSimpleName() + "   " + strategyRule.getLength() + " jours " + result);
 
         }
 
 
-        System.out.println(strategy.getIndicator().getSimpleName() + "   " + strategy.getLength() + " jours " + result);
+        System.out.println(strategyRule.getIndicator().getSimpleName() + "   " + strategyRule.getLength() + " jours " + result);
         return result;
     }
 
 
-    private List<CryptoCurrency> getCryptoCurrencies(String currency, CryptoCurrenciesFunction cryptoCurrenciesFunction) throws IOException, MissingRequiredQueryParameterException {
-        CryptoCurrenciesResult cryptoCurrenciesResult = alphaVantageClient.getCryptoCurrencies(cryptoCurrenciesFunction, Market.USD, currency, OutputSize.COMPACT);
-        List<CryptoCurrency> cryptoCurrencies = mapCryptoCurrenciesResult(cryptoCurrenciesResult);
-
-        return cryptoCurrencies;
-    }
-
-    private Predicate<CryptoCurrency> valideCryptoCurrencyHistoByMonths(int nbrMonths) {
-        Date startDate = Date.from(ZonedDateTime.now().minusMonths(nbrMonths).toInstant());
-
-        return cryptoCurrenciesEntry -> cryptoCurrenciesEntry.getDate().after(startDate);
-    }
-
-    private int populateBars(TimeSeries series, Supplier<Stream<CryptoCurrency>> cryptoCurrencySupplier) {
-        cryptoCurrencySupplier.get().forEach(cryptoCurrencyHisotrian -> {
+    private int populateBars(TimeSeries series, List<CryptoCurrency> cryptoCurrencySupplier) {
+        cryptoCurrencySupplier.forEach(cryptoCurrencyHisotrian -> {
 
 
             ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(cryptoCurrencyHisotrian.getDate().toInstant(), ZoneId.systemDefault());
             series.addBar(zonedDateTime, cryptoCurrencyHisotrian.getOpen(), cryptoCurrencyHisotrian.getHigh(), cryptoCurrencyHisotrian.getLow(), cryptoCurrencyHisotrian.getClose(), cryptoCurrencyHisotrian.getVolume());
 
 
-            //  System.out.println(cryptoCurrencyHisotrian);
 
         });
-        return (int) cryptoCurrencySupplier.get().count();
+        return cryptoCurrencySupplier.size();
     }
-
-    private List<CryptoCurrency> mapCryptoCurrenciesResult(CryptoCurrenciesResult cryptoCurrenciesResult) {
-        List<CryptoCurrency> cryptoCurrencies = new ArrayList<>();
-        cryptoCurrenciesResult.getCryptoCurrencies().forEach((date, cryptoCur) -> {
-
-            CryptoCurrency cryptoCurrency = new CryptoCurrency(cryptoCur.getOpen(), cryptoCur.getHigh(), cryptoCur.getLow(), cryptoCur.getClose(), cryptoCur.getVolume(), cryptoCur.getMarketCup(), date);
-            cryptoCurrencies.add(cryptoCurrency);
-
-        });
-        return cryptoCurrencies;
-    }
-
-
 
 
 }

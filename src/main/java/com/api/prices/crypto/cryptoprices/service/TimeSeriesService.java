@@ -4,21 +4,12 @@ import com.api.prices.crypto.cryptoprices.client.alphavantage.configuration.IAlp
 import com.api.prices.crypto.cryptoprices.client.alphavantage.currencies.*;
 import com.api.prices.crypto.cryptoprices.client.alphavantage.request.OutputSize;
 import com.api.prices.crypto.cryptoprices.client.alphavantage.timeseries.MissingRequiredQueryParameterException;
-import com.api.prices.crypto.cryptoprices.entity.Strategy;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.ta4j.core.BaseTimeSeries;
-import org.ta4j.core.Indicator;
-import org.ta4j.core.TimeSeries;
-import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
-import org.ta4j.core.num.Num;
 
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
