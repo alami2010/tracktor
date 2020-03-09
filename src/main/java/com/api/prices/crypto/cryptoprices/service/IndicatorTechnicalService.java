@@ -39,15 +39,16 @@ public class IndicatorTechnicalService {
     private Map<String, List<CryptoCurrency>> timeSeriesWeekly;
 
 
-    private void runStratetigies(String currency, List<CryptoCurrency> cryptoCurrencySupplier) {
+    private void runStratetigies(String currency, List<CryptoCurrency> cryptoCurrencySupplier,double cuurencyPrice) {
         TimeSeries series = new BaseTimeSeries.SeriesBuilder().withName("YSF_HOPE").build();
 
         int countBars = populateBars(series, cryptoCurrencySupplier);
         ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
 
-
+        // return Optional.<Integer>empty();
+        // return Optional.of(out);
         // todo price
-        List<StrategyRule> strategies = StategyRuleBuilder.generateRuleStrategies(0);
+        List<StrategyRule> strategies = StategyRuleBuilder.generateRuleStrategies(cuurencyPrice);
 
         strategies.stream().map(strategyRule -> {
             try {

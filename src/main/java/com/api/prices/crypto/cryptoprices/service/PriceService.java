@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -47,16 +46,15 @@ public class PriceService {
             double sumDouble7D = currencyInfo.getData().entrySet().stream().mapToDouble(currency -> currency.getValue().getQuote().getUSD().getPercent_change_7d()).sum();
 
             System.out.println("Somme 1h= " + sumDouble1H + " 24h= " + sumDouble24H + " 7D= " + sumDouble7D);
-            currencyInfo.getData().entrySet().stream().forEach(currency -> {
-                checkPrice(currency);
-            });
+            currencyInfo.getData().entrySet().stream().forEach(currency -> checkPrice(currency)  );
         }
         currencyTrackService.trackPriceChangeByRobot(currencyToTracks);
     }
 
     // todo la date pour rechercher pas une seul fois
     private List<CurrencyToTrack> getCurrencyToTracks() {
-        if (currencyToTracks == null) currencyToTracks = pricesRestClient.getCurrencyToTrack();
+        //if (currencyToTracks == null)
+            currencyToTracks = pricesRestClient.getCurrencyToTrack();
 
         return currencyToTracks;
     }
@@ -82,8 +80,6 @@ public class PriceService {
 
 
     }
-
-
 
 
     private CurrencyToTrack getCurrencyToTrackByKey(List<CurrencyToTrack> currencyToTracks, String key) {

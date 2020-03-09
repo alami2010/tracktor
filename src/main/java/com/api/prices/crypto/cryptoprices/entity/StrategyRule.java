@@ -23,8 +23,8 @@ public class StrategyRule {
         SMA_5_UP_PRICE,
         SMA_20_DOWN_PRICE,
         SMA_20_UP_PRICE,
-        Stochastic_14_DOWN_20,
-        Stochastic_14_UP_80
+        STOCHASTIC_14_DOWN_20,
+        STOCHASTIC_14_UP_80
 
     }
 

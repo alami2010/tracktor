@@ -1,5 +1,7 @@
 package com.api.prices.crypto.cryptoprices.entity;
 
+import java.math.BigDecimal;
+
 public class CurrencyToTrack {
     String name;
     double min;
@@ -24,7 +26,8 @@ public class CurrencyToTrack {
     }
 
     public void setMin(double min) {
-        this.min = min;
+        this.min = new BigDecimal(min).setScale(5, BigDecimal.ROUND_HALF_UP).doubleValue();
+
     }
 
     public double getMax() {
@@ -32,7 +35,7 @@ public class CurrencyToTrack {
     }
 
     public void setMax(double max) {
-        this.max = max;
+        this.max = new BigDecimal(max).setScale(5, BigDecimal.ROUND_HALF_UP).doubleValue();
     }
 
     @Override
