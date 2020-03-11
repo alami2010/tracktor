@@ -30,7 +30,6 @@ import java.lang.reflect.Type;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static com.api.prices.crypto.cryptoprices.client.CoinRestClient.UrlManager.*;
 
@@ -51,9 +50,7 @@ public class CoinRestClient {
     public static final String TOKEN_COMPTE_2 = "b5ac83f7-ff05-4b81-85b2-682f49557114";
 
 
-
     public enum UrlManager {
-        TEST("https://www.alphavantage.co/query?function=SMA&symbol=MSFT&interval=weekly&time_period=10&series_type=open&apikey=demo", null),
         COIN_TO_TRACK_UPDATE(URL_COIN_TO_TRACK_UPDATE, null),
         SAVE_TIME_SERIE(URL_COIN_TO_TRACK_UPDATE, null),
         GET_TIME_SERIE(URL_GET_TIME_SERIE, null),
@@ -117,7 +114,7 @@ public class CoinRestClient {
 
     public CurrencyInformation getOneCurrenciesInfo(String currencies) {
 
-        logger.info("Symbol " + currencies);
+        //logger.info("Symbol " + currencies);
 
         List<NameValuePair> paratmers = new ArrayList<>();
         paratmers.add(new BasicNameValuePair("symbol", currencies));
@@ -167,7 +164,7 @@ public class CoinRestClient {
 
 
     public void updateCurrency(CurrencyToTrack currencyToTrack) {
-        logger.info("updateCurrency  {}",currencyToTrack);
+        logger.info("updateCurrency  {}", currencyToTrack);
 
         List<NameValuePair> paratmersBody = new ArrayList<>();
         paratmersBody.add(new BasicNameValuePair("update_name", "true"));
@@ -191,15 +188,15 @@ public class CoinRestClient {
 
     public void saveTimeSeries(String currency, String cryptoCurrenciesJson, CryptoCurrenciesFunction digitalCurrencyWeekly) {
 
-        List<NameValuePair> paratmersBody = new ArrayList<>();
-        paratmersBody.add(new BasicNameValuePair(digitalCurrencyWeekly.name(), "true"));
-        paratmersBody.add(new BasicNameValuePair("symbol", currency));
-        paratmersBody.add(new BasicNameValuePair("time_serie",cryptoCurrenciesJson));
+        List<NameValuePair> parametersBody = new ArrayList<>();
+        parametersBody.add(new BasicNameValuePair(digitalCurrencyWeekly.name(), "true"));
+        parametersBody.add(new BasicNameValuePair("symbol", currency));
+        parametersBody.add(new BasicNameValuePair("time_serie", cryptoCurrenciesJson));
         List<NameValuePair> paratmers = new ArrayList<>();
 
         try {
 
-            makeAPICall(SAVE_TIME_SERIE, paratmers, paratmersBody);
+            makeAPICall(SAVE_TIME_SERIE, paratmers, parametersBody);
 
 
         } catch (IOException e) {
@@ -210,7 +207,6 @@ public class CoinRestClient {
     }
 
 
-
     public List<CurrencyToTrack> getCurrencyToTrack() {
 
         try {
@@ -218,7 +214,8 @@ public class CoinRestClient {
 
             Gson g = new Gson();
 
-            Type listType = new TypeToken<ArrayList<CurrencyToTrack>>() {}.getType();
+            Type listType = new TypeToken<ArrayList<CurrencyToTrack>>() {
+            }.getType();
 
             List<CurrencyToTrack> currencyInformation = g.fromJson(response_content, listType);
 
@@ -236,11 +233,12 @@ public class CoinRestClient {
     public List<ServerTimeSeries> geTimeSeries(String type) {
 
         try {
-            String response_content = getSampleClient(GET_TIME_SERIE.url+type);
+            String response_content = getSampleClient(GET_TIME_SERIE.url + type);
 
             Gson g = new Gson();
 
-            Type listType = new TypeToken<ArrayList<ServerTimeSeries>>() {}.getType();
+            Type listType = new TypeToken<ArrayList<ServerTimeSeries>>() {
+            }.getType();
 
             List<ServerTimeSeries> serverTimeSeries = g.fromJson(response_content, listType);
 

@@ -15,9 +15,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.api.prices.crypto.cryptoprices.client.alphavantage.currencies.CryptoCurrenciesFunction.DIGITAL_CURRENCY_DAILY;
-import static com.api.prices.crypto.cryptoprices.client.alphavantage.currencies.CryptoCurrenciesFunction.DIGITAL_CURRENCY_WEEKLY;
-
 @Service
 public class ServerClientService {
 
@@ -29,18 +26,7 @@ public class ServerClientService {
     public void saveTimeSeries(String currency, Supplier<Stream<CryptoCurrency>> cryptoCurrencySupplier, CryptoCurrenciesFunction digitalCurrency) {
 
         String cryptoCurrenciesJson = cryptoCurrencySupplier.get().map(cryptoCurrency -> cryptoCurrency.toString()).collect(Collectors.joining(";"));
-
-        switch (digitalCurrency) {
-            case DIGITAL_CURRENCY_DAILY:
-                pricesRestClient.saveTimeSeries(currency, cryptoCurrenciesJson, DIGITAL_CURRENCY_DAILY);
-
-                break;
-            case DIGITAL_CURRENCY_WEEKLY:
-                pricesRestClient.saveTimeSeries(currency, cryptoCurrenciesJson, DIGITAL_CURRENCY_WEEKLY);
-
-                break;
-        }
-
+        pricesRestClient.saveTimeSeries(currency, cryptoCurrenciesJson, digitalCurrency);
 
         System.out.println(digitalCurrency + " " + cryptoCurrenciesJson);
 

@@ -97,6 +97,6 @@ public interface IAlphaVantageClient {
 
     public CryptoCurrenciesResult getCryptoCurrencies(CryptoCurrenciesFunction cryptoCurrenciesFunction,
                                                       Market market, String symbol, OutputSize outputSize
-    ) throws IOException, MissingRequiredQueryParameterException;
+    ) throws MissingRequiredQueryParameterException, IOException;
 
 }

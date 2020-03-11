@@ -4,7 +4,7 @@ import com.api.prices.crypto.cryptoprices.client.CoinRestClient;
 import com.api.prices.crypto.cryptoprices.client.pojo.Currency;
 import com.api.prices.crypto.cryptoprices.client.pojo.CurrencyInformation;
 import com.api.prices.crypto.cryptoprices.entity.CurrencyToTrack;
-import com.api.prices.crypto.cryptoprices.entity.Decision;
+import com.api.prices.crypto.cryptoprices.entity.Signal;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,15 +46,15 @@ public class PriceService {
             double sumDouble7D = currencyInfo.getData().entrySet().stream().mapToDouble(currency -> currency.getValue().getQuote().getUSD().getPercent_change_7d()).sum();
 
             System.out.println("Somme 1h= " + sumDouble1H + " 24h= " + sumDouble24H + " 7D= " + sumDouble7D);
-            currencyInfo.getData().entrySet().stream().forEach(currency -> checkPrice(currency)  );
+            currencyInfo.getData().entrySet().stream().forEach(currency -> checkPrice(currency));
         }
         currencyTrackService.trackPriceChangeByRobot(currencyToTracks);
     }
 
-    // todo la date pour rechercher pas une seul fois
+    // todo la date pour rechercher pas une seul fois , creationde class Supplier data from ovh
     private List<CurrencyToTrack> getCurrencyToTracks() {
         //if (currencyToTracks == null)
-            currencyToTracks = pricesRestClient.getCurrencyToTrack();
+        currencyToTracks = pricesRestClient.getCurrencyToTrack();
 
         return currencyToTracks;
     }
@@ -62,23 +62,18 @@ public class PriceService {
     private void checkPrice(Map.Entry<String, Currency> currency) {
         CurrencyToTrack currencyToTrack = getCurrencyToTrackByKey(currencyToTracks, currency.getKey());
         double priceCurrency = currency.getValue().getQuote().getUSD().getPrice();
-        String slug = currency.getValue().getSlug();
 
-        checkPrice(currencyToTrack, priceCurrency, priceCurrency >= currencyToTrack.getMax(), Decision.SELL);
-        checkPrice(currencyToTrack, priceCurrency, priceCurrency <= currencyToTrack.getMin(), Decision.BUY);
+        checkPrice(currencyToTrack, priceCurrency, priceCurrency >= currencyToTrack.getMax(), Signal.SELL);
+        checkPrice(currencyToTrack, priceCurrency, priceCurrency <= currencyToTrack.getMin(), Signal.BUY);
 
-        displayConsole(currency, currencyToTrack, priceCurrency, slug);
+        displayConsole(currency, currencyToTrack, priceCurrency);
 
     }
 
-    private void displayConsole(Map.Entry<String, Currency> currency, CurrencyToTrack currencyToTrack, double priceCurrency, String slug) {
-
+    private void displayConsole(Map.Entry<String, Currency> currency, CurrencyToTrack currencyToTrack, double priceCurrency) {
 
         String leftAlignFormat = "| %-5s |%-16s | %-10s | %-10s | %-10s | %-10s | %-10s |%n";
-
         System.out.format(leftAlignFormat, StringUtils.capitalize(currencyToTrack.getName()), priceCurrency, currencyToTrack.getMin(), currencyToTrack.getMax(), currency.getValue().getQuote().getUSD().getPercent_change_1h(), currency.getValue().getQuote().getUSD().getPercent_change_24h(), currency.getValue().getQuote().getUSD().getPercent_change_7d());
-
-
     }
 
 
@@ -87,18 +82,18 @@ public class PriceService {
     }
 
 
-    private void checkPrice(CurrencyToTrack currencyToTrack, double priceCurrency, boolean isDecisionChecked, Decision decision) {
+    private void checkPrice(CurrencyToTrack currencyToTrack, double priceCurrency, boolean isDecisionChecked, Signal signal) {
         if (isDecisionChecked) {
             CurrencyToTrack oldCurrencyToTrack = currencyToTrack.duplicate();
-            updateCurrencyToTrack(currencyToTrack, decision, priceCurrency);
-            alertService.alert(priceCurrency, oldCurrencyToTrack, currencyToTrack, decision);
-
+            updateCurrencyToTrack(currencyToTrack, signal, priceCurrency);
+            alertService.alert(priceCurrency, oldCurrencyToTrack, currencyToTrack, signal);
         }
     }
 
-    private void updateCurrencyToTrack(CurrencyToTrack currencyToTrack, Decision decision, double priceCurrency) {
+    // todo se baser sur les valeur de time series :)
+    private void updateCurrencyToTrack(CurrencyToTrack currencyToTrack, Signal signal, double priceCurrency) {
         double marge;
-        switch (decision) {
+        switch (signal) {
             case SELL:
                 marge = priceCurrency - currencyToTrack.getMax();
                 currencyToTrack.setMax(priceCurrency + marge * MULTIPLY_BIG_MARGE);
@@ -110,8 +105,6 @@ public class PriceService {
                 currencyToTrack.setMax(currencyToTrack.getMax() - marge * MUTIPLY_SMALL_MARGE);
                 break;
         }
-
-
         pricesRestClient.updateCurrency(currencyToTrack);
     }
 

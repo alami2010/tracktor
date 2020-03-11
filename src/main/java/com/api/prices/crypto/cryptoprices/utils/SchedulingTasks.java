@@ -34,7 +34,6 @@ public class SchedulingTasks {
     @Scheduled(fixedRate = MINUTE * 5)
     public void reportPrice() {
 
-        logger.info("reportPrice");
         priceService.initMonitoringOfPrice();
 
     }

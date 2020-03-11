@@ -79,7 +79,7 @@ public class AlphaVantageClient implements IAlphaVantageClient {
     public CryptoCurrenciesResult getCryptoCurrencies(CryptoCurrenciesFunction cryptoCurrenciesFunction,
             Market market, String symbol, OutputSize outputSize
     )
-            throws IOException, MissingRequiredQueryParameterException {
+            throws MissingRequiredQueryParameterException, IOException {
         String queryParameters = CryptoCurrenciesRequest.builder()
                 .cryptoCurrenciesFunction(cryptoCurrenciesFunction)
                 .market(market)

@@ -1,6 +1,5 @@
 package com.api.prices.crypto.cryptoprices.entity;
 
-public enum Decision {
-
+public enum Signal {
     BUY, SELL
 }

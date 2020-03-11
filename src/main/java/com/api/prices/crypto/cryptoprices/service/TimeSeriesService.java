@@ -47,15 +47,9 @@ public class TimeSeriesService {
                 System.out.println(currency);
 
 
-                List<CryptoCurrency> cryptoCurrenciesByDay = getCryptoCurrencies(currency, CryptoCurrenciesFunction.DIGITAL_CURRENCY_DAILY);
-                List<CryptoCurrency> cryptoCurrenciesByWeek = getCryptoCurrencies(currency, CryptoCurrenciesFunction.DIGITAL_CURRENCY_WEEKLY);
+                getTimeSeriesFromAndSaveInServerByInterval(currency, nbrMonths, CryptoCurrenciesFunction.DIGITAL_CURRENCY_DAILY);
 
-                Supplier<Stream<CryptoCurrency>> cryptoCurrencySupplierDays = getValidTimeSeries(nbrMonths, cryptoCurrenciesByDay);
-                Supplier<Stream<CryptoCurrency>> cryptoCurrencySupplierWeeks = getValidTimeSeries(nbrMonths, cryptoCurrenciesByWeek);
-
-
-                serverClientService.saveTimeSeries(currency, cryptoCurrencySupplierDays, CryptoCurrenciesFunction.DIGITAL_CURRENCY_DAILY);
-                serverClientService.saveTimeSeries(currency, cryptoCurrencySupplierWeeks, CryptoCurrenciesFunction.DIGITAL_CURRENCY_WEEKLY);
+                getTimeSeriesFromAndSaveInServerByInterval(currency, nbrMonths, CryptoCurrenciesFunction.DIGITAL_CURRENCY_WEEKLY);
 
 
                 // attendre deux minute
@@ -68,6 +62,12 @@ public class TimeSeriesService {
         });
 
 
+    }
+
+    private void getTimeSeriesFromAndSaveInServerByInterval(String currency, int nbrMonths, CryptoCurrenciesFunction digitalCurrency) throws IOException, MissingRequiredQueryParameterException {
+        List<CryptoCurrency> cryptoCurrenciesBy = getCryptoCurrencies(currency, digitalCurrency);
+        Supplier<Stream<CryptoCurrency>> cryptoCurrencySupplier = getValidTimeSeries(nbrMonths, cryptoCurrenciesBy);
+        serverClientService.saveTimeSeries(currency, cryptoCurrencySupplier, digitalCurrency);
     }
 
     // cette fonction doit recupper les donneés  au demarage une fois par jour
@@ -85,19 +85,18 @@ public class TimeSeriesService {
 
     private Supplier<Stream<CryptoCurrency>> getValidTimeSeries(int nbrMonths, List<CryptoCurrency> cryptoCurrenciesByDay) {
         return () -> cryptoCurrenciesByDay.stream().
-                filter(valideCryptoCurrencyHistoByMonths(nbrMonths));
+                filter(validCryptCurrencyHistByMonths(nbrMonths));
     }
 
 
 
     private List<CryptoCurrency> getCryptoCurrencies(String currency, CryptoCurrenciesFunction cryptoCurrenciesFunction) throws IOException, MissingRequiredQueryParameterException {
         CryptoCurrenciesResult cryptoCurrenciesResult = alphaVantageClient.getCryptoCurrencies(cryptoCurrenciesFunction, Market.USD, currency, OutputSize.COMPACT);
-        List<CryptoCurrency> cryptoCurrencies = mapCryptoCurrenciesResult(cryptoCurrenciesResult);
 
-        return cryptoCurrencies;
+        return mapCryptCurrenciesResult(cryptoCurrenciesResult);
     }
 
-    private Predicate<CryptoCurrency> valideCryptoCurrencyHistoByMonths(int nbrMonths) {
+    private Predicate<CryptoCurrency> validCryptCurrencyHistByMonths(int nbrMonths) {
         Date startDate = Date.from(ZonedDateTime.now().minusMonths(nbrMonths).toInstant());
 
         return cryptoCurrenciesEntry -> cryptoCurrenciesEntry.getDate().after(startDate);
@@ -105,7 +104,7 @@ public class TimeSeriesService {
 
 
 
-    private List<CryptoCurrency> mapCryptoCurrenciesResult(CryptoCurrenciesResult cryptoCurrenciesResult) {
+    private List<CryptoCurrency> mapCryptCurrenciesResult(CryptoCurrenciesResult cryptoCurrenciesResult) {
         List<CryptoCurrency> cryptoCurrencies = new ArrayList<>();
         cryptoCurrenciesResult.getCryptoCurrencies().forEach((date, cryptoCur) -> {
 
