@@ -1,16 +1,20 @@
-package com.api.prices.crypto.cryptoprices.service;
+    package com.api.prices.crypto.cryptoprices.service;
 
 import com.api.prices.crypto.cryptoprices.client.CoinRestClient;
 import com.api.prices.crypto.cryptoprices.client.pojo.Currency;
 import com.api.prices.crypto.cryptoprices.client.pojo.CurrencyInformation;
 import com.api.prices.crypto.cryptoprices.entity.CurrencyToTrack;
 import com.api.prices.crypto.cryptoprices.entity.Signal;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -20,7 +24,11 @@ public class PriceService {
 
     public static final int MULTIPLY_BIG_MARGE = 3;
     public static final double MUTIPLY_SMALL_MARGE = 1.3;
-    private static Logger logger = LogManager.getLogger(PriceService.class);
+    private static Logger logger = LoggerFactory.getLogger("stats");
+
+
+
+
     List<CurrencyToTrack> currencyToTracks = null;
 
 
@@ -33,7 +41,9 @@ public class PriceService {
 
 
     public void initMonitoringOfPrice() {
-        logger.info(" ===> Monitoring price <=== ");
+
+
+        logger.info(" \n===> Monitoring price <=== ");
 
 
         currencyTrackService.trackPriceChangeByRobot(currencyToTracks);
@@ -45,11 +55,13 @@ public class PriceService {
             double sumDouble24H = currencyInfo.getData().entrySet().stream().mapToDouble(currency -> currency.getValue().getQuote().getUSD().getPercent_change_24h()).sum();
             double sumDouble7D = currencyInfo.getData().entrySet().stream().mapToDouble(currency -> currency.getValue().getQuote().getUSD().getPercent_change_7d()).sum();
 
-            System.out.println("Somme 1h= " + sumDouble1H + " 24h= " + sumDouble24H + " 7D= " + sumDouble7D);
+            logger.info("Somme 1h= " + sumDouble1H + " 24h= " + sumDouble24H + " 7D= " + sumDouble7D);
             currencyInfo.getData().entrySet().stream().forEach(currency -> checkPrice(currency));
         }
         currencyTrackService.trackPriceChangeByRobot(currencyToTracks);
     }
+
+
 
     // todo la date pour rechercher pas une seul fois , creationde class Supplier data from ovh
     private List<CurrencyToTrack> getCurrencyToTracks() {
@@ -72,8 +84,8 @@ public class PriceService {
 
     private void displayConsole(Map.Entry<String, Currency> currency, CurrencyToTrack currencyToTrack, double priceCurrency) {
 
-        String leftAlignFormat = "| %-5s |%-16s | %-10s | %-10s | %-10s | %-10s | %-10s |%n";
-        System.out.format(leftAlignFormat, StringUtils.capitalize(currencyToTrack.getName()), priceCurrency, currencyToTrack.getMin(), currencyToTrack.getMax(), currency.getValue().getQuote().getUSD().getPercent_change_1h(), currency.getValue().getQuote().getUSD().getPercent_change_24h(), currency.getValue().getQuote().getUSD().getPercent_change_7d());
+        String leftAlignFormat = "| %-5s |%-16s | %-10s | %-10s | %-10s | %-10s | %-10s |";
+        logger.info(String.format(leftAlignFormat, StringUtils.capitalize(currencyToTrack.getName()), priceCurrency, currencyToTrack.getMin(), currencyToTrack.getMax(), currency.getValue().getQuote().getUSD().getPercent_change_1h(), currency.getValue().getQuote().getUSD().getPercent_change_24h(), currency.getValue().getQuote().getUSD().getPercent_change_7d()) );
     }
 
 

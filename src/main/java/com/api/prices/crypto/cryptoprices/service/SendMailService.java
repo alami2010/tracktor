@@ -1,5 +1,7 @@
 package com.api.prices.crypto.cryptoprices.service;
 
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import javax.mail.*;
@@ -10,6 +12,7 @@ import java.util.Properties;
 @Service
 public class SendMailService {
 
+    private static Logger logger = LogManager.getLogger(SendMailService.class);
 
     private static void setToAndFromForMail(Message message) throws MessagingException {
         message.setFrom(new InternetAddress("youssef.dahar@gmail.com"));
@@ -53,8 +56,10 @@ public class SendMailService {
             message.setSubject(subject);
 
             Transport.send(message);
-            System.out.println("Sending mail completed!!!");
+            logger.info("Sending mail completed!!!");
         } catch (MessagingException e) {
+            logger.error("Error sending mail    !!!");
+
             throw new RuntimeException(e);
         }
     }

@@ -31,16 +31,17 @@ public class SchedulingTasks {
     private TimeSeriesService timeSeriesService;
 
 
-    @Scheduled(fixedRate = MINUTE * 5)
+    @Scheduled(fixedRate = MINUTE * 3)
     public void reportPrice() {
 
         priceService.initMonitoringOfPrice();
 
     }
 
-    @Scheduled(fixedRate = HOUR * 6)
+    @Scheduled(fixedRate = HOUR * 4)
     public void reportStats() {
 
+        // todo more analysis
         logger.info("reportStats");
         analyseService.initMonitoringOfStats();
         logger.info("reportStats End");

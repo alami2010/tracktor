@@ -6,6 +6,7 @@ import com.api.prices.crypto.cryptoprices.client.pojo.CurrencyInformation;
 import com.api.prices.crypto.cryptoprices.client.pojo.CurrencyInformationStats;
 import com.api.prices.crypto.cryptoprices.entity.CurrencyToTrack;
 import com.api.prices.crypto.cryptoprices.entity.ServerTimeSeries;
+import com.api.prices.crypto.cryptoprices.utils.Utils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.apache.http.HttpEntity;
@@ -37,17 +38,16 @@ import static com.api.prices.crypto.cryptoprices.client.CoinRestClient.UrlManage
 public class CoinRestClient {
 
 
-    private static final int creditCount = 0;
-
     private static final Logger logger = LogManager.getLogger(CoinRestClient.class);
     private static final String URL_COIN_TO_TRACK = "http://www.ydahar.com/currencies/currencies.php";
     private static final String URL_GET_TIME_SERIE = "http://www.ydahar.com/currencies/currencies_time_series.php?type=";
 
     private static final String URL_COIN_TO_TRACK_UPDATE = "http://www.ydahar.com/currencies/server.php";
-    private static final String URI_GET_SPECEFIC_COIN = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest";
+    private static final String URI_GET_SPECIFIC_COIN = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest";
     private static final String URI_GET_ALL_COIN = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?convert=USD&start=1&limit=5000";
     public static final String TOKEN_COMPTE_1 = "a3c5ac9b-1b2d-470b-8a67-a5112f71a981";
     public static final String TOKEN_COMPTE_2 = "b5ac83f7-ff05-4b81-85b2-682f49557114";
+    public static final String TOKEN_COMPTE_3 = "9bdab988-11c0-407e-9256-cc2b8fad8e1e";
 
 
     public enum UrlManager {
@@ -55,7 +55,8 @@ public class CoinRestClient {
         SAVE_TIME_SERIE(URL_COIN_TO_TRACK_UPDATE, null),
         GET_TIME_SERIE(URL_GET_TIME_SERIE, null),
         COIN_TO_TRACK(URL_COIN_TO_TRACK, null),
-        SPECIFIC_COIN(URI_GET_SPECEFIC_COIN, TOKEN_COMPTE_1),
+        SPECIFIC_COIN(URI_GET_SPECIFIC_COIN, TOKEN_COMPTE_1),
+        SPECIFIC_2_COIN(URI_GET_SPECIFIC_COIN, TOKEN_COMPTE_3),
         ALL_COIN(URI_GET_ALL_COIN, TOKEN_COMPTE_2);
         String header;
         String url;
@@ -114,24 +115,22 @@ public class CoinRestClient {
 
     public CurrencyInformation getOneCurrenciesInfo(String currencies) {
 
-        //logger.info("Symbol " + currencies);
+        UrlManager urlManager = Utils.isSwitchDay() ? SPECIFIC_COIN : SPECIFIC_2_COIN;
 
-        List<NameValuePair> paratmers = new ArrayList<>();
-        paratmers.add(new BasicNameValuePair("symbol", currencies));
+
+        List<NameValuePair> parameters = new ArrayList<>();
+        parameters.add(new BasicNameValuePair("symbol", currencies));
 
         try {
-            String result = makeAPICall(SPECIFIC_COIN, paratmers, null);
-
+            String result = makeAPICall(urlManager, parameters, null);
 
             Gson g = new Gson();
 
-
             CurrencyInformation currencyInformation = g.fromJson(result, CurrencyInformation.class);
-
 
             return currencyInformation;
         } catch (IOException e) {
-            logger.error("Error: cannont access content - " + e.toString());
+            logger.error("Error: can not access content - " + e.toString());
         } catch (URISyntaxException e) {
             logger.error("Error: Invalid URL " + e.toString());
         }

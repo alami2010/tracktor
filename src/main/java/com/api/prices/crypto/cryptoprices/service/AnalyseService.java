@@ -73,7 +73,7 @@ public class AnalyseService {
     }
 
     public static int sortedByPercentChange(Currency o1, Currency o2) {
-        return (int) (o1.getQuote().getUSD().getPercent_change_7d() - o2.getQuote().getUSD().getPercent_change_7d());
+        return (int) (o1.getQuote().getUSD().getPercent_change_24h() - o2.getQuote().getUSD().getPercent_change_24h());
     }
 
 
