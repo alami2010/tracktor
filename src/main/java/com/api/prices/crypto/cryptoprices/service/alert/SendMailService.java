@@ -1,4 +1,4 @@
-package com.api.prices.crypto.cryptoprices.service;
+package com.api.prices.crypto.cryptoprices.service.alert;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -58,7 +58,7 @@ public class SendMailService {
             Transport.send(message);
             logger.info("Sending mail completed!!!");
         } catch (MessagingException e) {
-            logger.error("Error sending mail    !!!");
+            logger.error("Error sending mail    !!!" + e.getMessage());
 
             throw new RuntimeException(e);
         }

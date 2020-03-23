@@ -1,8 +1,8 @@
 package com.api.prices.crypto.cryptoprices.client.alphavantage.currencyexchange;
 
-import com.api.prices.crypto.cryptoprices.client.alphavantage.timeseries.MissingRequiredQueryParameterException;
 import com.api.prices.crypto.cryptoprices.client.alphavantage.batchquote.InvalidSymbolLengthException;
 import com.api.prices.crypto.cryptoprices.client.alphavantage.request.APIRequest;
+import com.api.prices.crypto.cryptoprices.client.alphavantage.timeseries.MissingRequiredQueryParameterException;
 import lombok.Builder;
 import lombok.Data;
 

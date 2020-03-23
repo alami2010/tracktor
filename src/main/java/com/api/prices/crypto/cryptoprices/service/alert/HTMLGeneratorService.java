@@ -1,4 +1,4 @@
-package com.api.prices.crypto.cryptoprices.service;
+package com.api.prices.crypto.cryptoprices.service.alert;
 
 import com.api.prices.crypto.cryptoprices.client.pojo.Currency;
 import com.api.prices.crypto.cryptoprices.client.pojo.USD;

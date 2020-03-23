@@ -21,8 +21,8 @@ import com.api.prices.crypto.cryptoprices.client.alphavantage.request.IntradayIn
 import com.api.prices.crypto.cryptoprices.client.alphavantage.request.OutputSize;
 import com.api.prices.crypto.cryptoprices.client.alphavantage.sector.SectorResult;
 import com.api.prices.crypto.cryptoprices.client.alphavantage.sector.SectorResultDeserializer;
-import com.api.prices.crypto.cryptoprices.client.alphavantage.timeseries.*;
 import com.api.prices.crypto.cryptoprices.client.alphavantage.timeseries.MissingRequiredQueryParameterException;
+import com.api.prices.crypto.cryptoprices.client.alphavantage.timeseries.*;
 import com.api.prices.crypto.cryptoprices.client.alphavantage.utils.JsonParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

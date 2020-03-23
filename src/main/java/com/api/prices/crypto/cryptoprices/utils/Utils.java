@@ -1,9 +1,14 @@
 package com.api.prices.crypto.cryptoprices.utils;
 
+import com.api.prices.crypto.cryptoprices.client.pojo.Currency;
+import com.api.prices.crypto.cryptoprices.entity.enums.AlphaVantageCurrency;
+import com.api.prices.crypto.cryptoprices.entity.enums.BinanceCurrency;
+
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.*;
 
 public class Utils {
 
@@ -40,6 +45,43 @@ public class Utils {
         }
 
         return false;
+    }
+
+
+    public static List<String> generateSomme(int index) {
+        File file = new File("C:\\harba\\tracktor\\log\\report-stats.log");
+        List<String> sommeLine = new ArrayList<>();
+        Scanner in = null;
+        int i = 0;
+        try {
+            in = new Scanner(file);
+            while (in.hasNext()) {
+                String line = in.nextLine();
+                if (line.contains("Somme")) {
+
+                    String stats = line.split("Somme")[1];
+                    stats = stats.trim();
+                    String percent = stats.split(",")[index];
+
+                    sommeLine.add("[" + i + "," + percent + "]");
+
+                    i++;
+                }
+
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        return sommeLine;
+    }
+
+    public static boolean checkIfBinanceBrokerSupportCurrency(Currency currency) {
+        return Arrays.stream(BinanceCurrency.values()).anyMatch((t) -> t.name().equals(currency.getSymbol()));
+    }
+
+    public static boolean checkIfAplhaBrokerSupportCurrency(Currency currency) {
+        return Arrays.stream(AlphaVantageCurrency.values()).anyMatch((t) -> t.name().equals(currency.getSymbol()));
     }
 
 }

@@ -1,7 +1,5 @@
 package com.api.prices.crypto.cryptoprices.client.alphavantage.response;
 
-import com.api.prices.crypto.cryptoprices.client.alphavantage.request.IntradayInterval;
-import com.api.prices.crypto.cryptoprices.client.alphavantage.request.OutputSize;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 

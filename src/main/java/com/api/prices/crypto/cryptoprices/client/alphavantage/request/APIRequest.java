@@ -1,7 +1,7 @@
 package com.api.prices.crypto.cryptoprices.client.alphavantage.request;
 
-import com.api.prices.crypto.cryptoprices.client.alphavantage.timeseries.MissingRequiredQueryParameterException;
 import com.api.prices.crypto.cryptoprices.client.alphavantage.batchquote.InvalidSymbolLengthException;
+import com.api.prices.crypto.cryptoprices.client.alphavantage.timeseries.MissingRequiredQueryParameterException;
 
 public interface APIRequest {
 

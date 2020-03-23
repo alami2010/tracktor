@@ -1,4 +1,5 @@
-package com.api.prices.crypto.cryptoprices.entity;
+package com.api.prices.crypto.cryptoprices.entity.enums;
+
 
 public enum BinanceCurrency {
 

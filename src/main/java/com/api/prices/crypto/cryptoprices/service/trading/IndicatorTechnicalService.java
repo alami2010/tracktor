@@ -1,8 +1,12 @@
-package com.api.prices.crypto.cryptoprices.service;
+package com.api.prices.crypto.cryptoprices.service.trading;
 
 import com.api.prices.crypto.cryptoprices.client.alphavantage.configuration.IAlphaVantageClient;
 import com.api.prices.crypto.cryptoprices.client.alphavantage.currencies.CryptoCurrency;
+import com.api.prices.crypto.cryptoprices.entity.Signal;
 import com.api.prices.crypto.cryptoprices.entity.StrategyRule;
+import com.api.prices.crypto.cryptoprices.entity.StrategyRuleResult;
+import com.api.prices.crypto.cryptoprices.service.data.ServerClientService;
+import com.api.prices.crypto.cryptoprices.utils.StategyRuleBuilder;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +23,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class IndicatorTechnicalService {
@@ -39,10 +44,10 @@ public class IndicatorTechnicalService {
     private Map<String, List<CryptoCurrency>> timeSeriesWeekly;
 
 
-    private void runStratetigies(String currency, List<CryptoCurrency> cryptoCurrencySupplier,double currencyPrice) {
+    public List<StrategyRuleResult> runStrategies(String currency, List<CryptoCurrency> cryptoCurrencyList, double currencyPrice) {
         TimeSeries series = new BaseTimeSeries.SeriesBuilder().withName("YSF_HOPE").build();
 
-        int countBars = populateBars(series, cryptoCurrencySupplier);
+        int countBars = populateBars(series, cryptoCurrencyList);
         ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
 
 
@@ -52,10 +57,10 @@ public class IndicatorTechnicalService {
         // return Optional.<Integer>empty();
         // return Optional.of(out);
         // todo optional in exception case
-        strategies.stream().map(strategyRule -> {
+        List<StrategyRuleResult> strategiesResult = strategies.stream().map(strategyRule -> {
             try {
 
-                return  calculate(strategyRule, closePrice, countBars, currency);
+                return calculate(strategyRule, closePrice, countBars, currency);
 
 
             } catch (Exception e) {
@@ -63,25 +68,28 @@ public class IndicatorTechnicalService {
                 return null;
             }
 
-        });
+        }).collect(Collectors.toList());
+
+        return strategiesResult;
     }
 
 
-    private Num calculate(StrategyRule strategyRule, Indicator closePrice, int nbrBars, String currency) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    private StrategyRuleResult calculate(StrategyRule strategyRule, Indicator closePrice, int nbrBars, String currency) throws IllegalAccessException, InvocationTargetException, InstantiationException {
         Constructor[] allConstructors = strategyRule.getIndicator().getDeclaredConstructors();
         Indicator indicator = (Indicator) allConstructors[0].newInstance(closePrice, strategyRule.getLength());
         Num result = (Num) indicator.getValue(nbrBars - 1);
 
+        boolean test = strategyRule.getPredicate() != null && strategyRule.getPredicate().test(result.intValue());
 
-        if (strategyRule.getPredicate() != null && strategyRule.getPredicate().test(result.intValue())) {
+        Signal signal = Signal.NO_SIGNAL;
 
-            System.out.println("DONE ALERTE" + currency + "  " + strategyRule.getIndicator().getSimpleName() + "   " + strategyRule.getLength() + " jours " + result);
+        if (test) {
+            System.out.println("DONE ALERT " + currency + " " + strategyRule.getRuleName() + "   " + result);
+            signal = strategyRule.getSignal();
 
         }
 
-
-        System.out.println(strategyRule.getIndicator().getSimpleName() + "   " + strategyRule.getLength() + " jours " + result);
-        return result;
+        return new StrategyRuleResult(result, strategyRule.getRuleName().name(), signal);
     }
 
 
@@ -91,7 +99,6 @@ public class IndicatorTechnicalService {
 
             ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(cryptoCurrencyHisotrian.getDate().toInstant(), ZoneId.systemDefault());
             series.addBar(zonedDateTime, cryptoCurrencyHisotrian.getOpen(), cryptoCurrencyHisotrian.getHigh(), cryptoCurrencyHisotrian.getLow(), cryptoCurrencyHisotrian.getClose(), cryptoCurrencyHisotrian.getVolume());
-
 
 
         });

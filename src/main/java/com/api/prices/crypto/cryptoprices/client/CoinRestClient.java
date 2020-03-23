@@ -47,7 +47,7 @@ public class CoinRestClient {
     private static final String URI_GET_ALL_COIN = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?convert=USD&start=1&limit=5000";
     public static final String TOKEN_COMPTE_1 = "a3c5ac9b-1b2d-470b-8a67-a5112f71a981";
     public static final String TOKEN_COMPTE_2 = "b5ac83f7-ff05-4b81-85b2-682f49557114";
-    public static final String TOKEN_COMPTE_3 = "9bdab988-11c0-407e-9256-cc2b8fad8e1e";
+    public static final String TOKEN_COMPTE_3 = "a8efc071-49ed-4e96-9d58-a6bc3e7ef14f";
 
 
     public enum UrlManager {
@@ -130,9 +130,9 @@ public class CoinRestClient {
 
             return currencyInformation;
         } catch (IOException e) {
-            logger.error("Error: can not access content - " + e.toString());
+            logger.error("Error: can not access content - " + e.getMessage());
         } catch (URISyntaxException e) {
-            logger.error("Error: Invalid URL " + e.toString());
+            logger.error("Error: Invalid URL " + e.getMessage());
         }
 
         return null;

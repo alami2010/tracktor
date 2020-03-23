@@ -1,8 +1,10 @@
-package com.api.prices.crypto.cryptoprices.service;
+package com.api.prices.crypto.cryptoprices.service.data;
 
 import com.api.prices.crypto.cryptoprices.client.CoinRestClient;
 import com.api.prices.crypto.cryptoprices.client.alphavantage.currencies.CryptoCurrenciesFunction;
 import com.api.prices.crypto.cryptoprices.client.alphavantage.currencies.CryptoCurrency;
+import com.api.prices.crypto.cryptoprices.client.pojo.CurrencyInformation;
+import com.api.prices.crypto.cryptoprices.entity.CurrencyToTrack;
 import com.api.prices.crypto.cryptoprices.entity.ServerTimeSeries;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,18 @@ public class ServerClientService {
 
     @Autowired
     private CoinRestClient pricesRestClient;
+
+
+    List<CurrencyToTrack> currencyToTracks = null;
+    private Map<String, List<CryptoCurrency>> timeSeriesDaily;
+    private Map<String, List<CryptoCurrency>> timeSeriesWeekly;
+
+    public List<CurrencyToTrack> getCurrencyToTracks() {
+        //if (currencyToTracks == null)
+        currencyToTracks = pricesRestClient.getCurrencyToTrack();
+
+        return currencyToTracks;
+    }
 
 
     public void saveTimeSeries(String currency, Supplier<Stream<CryptoCurrency>> cryptoCurrencySupplier, CryptoCurrenciesFunction digitalCurrency) {
@@ -62,5 +76,34 @@ public class ServerClientService {
         if(cryptoCurrencies != null )
             listMap.put(serverTimeSeries.getSymbol(),cryptoCurrencies);
 
+    }
+
+
+    // todo test for time to be one time a day
+
+    public Map<String, List<CryptoCurrency>> getTimeSeriesDaily() {
+        timeSeriesDaily = timeSeriesDaily != null ? timeSeriesDaily : getTimeSeries(CryptoCurrenciesFunction.DIGITAL_CURRENCY_DAILY);
+        return timeSeriesDaily;
+    }
+
+    public void setTimeSeriesDaily(Map<String, List<CryptoCurrency>> timeSeriesDaily) {
+        this.timeSeriesDaily = timeSeriesDaily;
+    }
+
+    public Map<String, List<CryptoCurrency>> getTimeSeriesWeekly() {
+        timeSeriesWeekly = timeSeriesWeekly != null ? timeSeriesWeekly : getTimeSeries(CryptoCurrenciesFunction.DIGITAL_CURRENCY_WEEKLY);
+        return timeSeriesWeekly;
+    }
+
+    public void setTimeSeriesWeekly(Map<String, List<CryptoCurrency>> timeSeriesWeekly) {
+        this.timeSeriesWeekly = timeSeriesWeekly;
+    }
+
+    public CurrencyInformation getOneCurrenciesInfo(String currencies) {
+        return pricesRestClient.getOneCurrenciesInfo(currencies);
+    }
+
+    public void updateCurrency(CurrencyToTrack currencyToTrack) {
+        pricesRestClient.updateCurrency(currencyToTrack);
     }
 }

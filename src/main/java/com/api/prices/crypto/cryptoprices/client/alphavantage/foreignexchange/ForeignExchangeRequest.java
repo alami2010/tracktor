@@ -1,10 +1,10 @@
 package com.api.prices.crypto.cryptoprices.client.alphavantage.foreignexchange;
 
-import com.api.prices.crypto.cryptoprices.client.alphavantage.request.APIRequest;
-import com.api.prices.crypto.cryptoprices.client.alphavantage.timeseries.MissingRequiredQueryParameterException;
 import com.api.prices.crypto.cryptoprices.client.alphavantage.batchquote.InvalidSymbolLengthException;
+import com.api.prices.crypto.cryptoprices.client.alphavantage.request.APIRequest;
 import com.api.prices.crypto.cryptoprices.client.alphavantage.request.IntradayInterval;
 import com.api.prices.crypto.cryptoprices.client.alphavantage.request.OutputSize;
+import com.api.prices.crypto.cryptoprices.client.alphavantage.timeseries.MissingRequiredQueryParameterException;
 import lombok.Builder;
 import lombok.Data;
 

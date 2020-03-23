@@ -1,4 +1,4 @@
-package com.api.prices.crypto.cryptoprices.service;
+package com.api.prices.crypto.cryptoprices.service.alert;
 
 import com.api.prices.crypto.cryptoprices.entity.CurrencyToTrack;
 import com.api.prices.crypto.cryptoprices.entity.Signal;
@@ -15,7 +15,7 @@ public class AlertService {
     @Autowired
     private SendMailService sendMail;
     @Autowired
-    private HTMLGeneratorService HTMLGeneratorService;
+    private com.api.prices.crypto.cryptoprices.service.alert.HTMLGeneratorService HTMLGeneratorService;
     final String SUBJECT_TO_SEND = "%3s  %1s";
     final String MESSAGE_TO_SEND = "%3s  %1s  price %2s </br>\n %s ";
 

@@ -1,4 +1,4 @@
-package com.api.prices.crypto.cryptoprices.client.alphavantage.currencies;
+package com.api.prices.crypto.cryptoprices.entity.enums;
 
 public enum AlphaVantageCurrency {
 

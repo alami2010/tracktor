@@ -1,5 +1,5 @@
 package com.api.prices.crypto.cryptoprices.entity;
 
 public enum Signal {
-    BUY, SELL
+    SIGNAL_BUY, SIGNAL_SELL, NO_SIGNAL
 }

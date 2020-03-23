@@ -1,21 +1,21 @@
-package com.api.prices.crypto.cryptoprices.service;
+package com.api.prices.crypto.cryptoprices.service.trading;
 
 import com.api.prices.crypto.cryptoprices.client.CoinRestClient;
 import com.api.prices.crypto.cryptoprices.client.pojo.Currency;
 import com.api.prices.crypto.cryptoprices.client.pojo.CurrencyInformation;
 import com.api.prices.crypto.cryptoprices.client.pojo.CurrencyInformationStats;
-import com.api.prices.crypto.cryptoprices.entity.BinanceCurrency;
 import com.api.prices.crypto.cryptoprices.entity.CurrencyToTrack;
 import com.api.prices.crypto.cryptoprices.entity.TableHtml;
 import com.api.prices.crypto.cryptoprices.repository.Student;
 import com.api.prices.crypto.cryptoprices.repository.StudentRepository;
+import com.api.prices.crypto.cryptoprices.service.alert.AlertService;
+import com.api.prices.crypto.cryptoprices.utils.Utils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -58,7 +58,7 @@ public class AnalyseService {
         if (statCurrencies != null && statCurrencies.getData() != null) {
 
             List<Currency> currencies = statCurrencies.getData().stream()
-                    .filter(AnalyseService::checkIfBrokerSupportCurrency)
+                    .filter(Utils::checkIfBinanceBrokerSupportCurrency)
                     .filter(AnalyseService::checkIfCurrencyNeedToBeNotified)
                     .sorted(AnalyseService::sortedByPercentChange)
                     .collect(Collectors.toList());
@@ -76,10 +76,6 @@ public class AnalyseService {
         return (int) (o1.getQuote().getUSD().getPercent_change_24h() - o2.getQuote().getUSD().getPercent_change_24h());
     }
 
-
-    private static boolean checkIfBrokerSupportCurrency(Currency currency) {
-        return Arrays.stream(BinanceCurrency.values()).anyMatch((t) -> t.name().equals(currency.getSymbol()));
-    }
 
     private static boolean checkIfCurrencyNeedToBeNotified(Currency currency) {
         double percentChange1h = currency.getQuote().getUSD().getPercent_change_1h();

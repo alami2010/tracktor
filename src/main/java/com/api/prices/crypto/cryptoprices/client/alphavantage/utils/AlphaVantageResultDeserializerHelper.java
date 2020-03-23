@@ -1,7 +1,7 @@
 package com.api.prices.crypto.cryptoprices.client.alphavantage.utils;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.api.prices.crypto.cryptoprices.client.alphavantage.response.MetaData;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import java.io.IOException;
 import java.text.ParseException;

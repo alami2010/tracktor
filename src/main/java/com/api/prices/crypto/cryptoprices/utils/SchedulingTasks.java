@@ -1,16 +1,13 @@
 package com.api.prices.crypto.cryptoprices.utils;
 
-import com.api.prices.crypto.cryptoprices.client.alphavantage.timeseries.MissingRequiredQueryParameterException;
-import com.api.prices.crypto.cryptoprices.service.AnalyseService;
-import com.api.prices.crypto.cryptoprices.service.PriceService;
-import com.api.prices.crypto.cryptoprices.service.TimeSeriesService;
+import com.api.prices.crypto.cryptoprices.service.data.TimeSeriesService;
+import com.api.prices.crypto.cryptoprices.service.trading.AnalyseService;
+import com.api.prices.crypto.cryptoprices.service.trading.PriceService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import java.io.IOException;
 
 
 @Component
@@ -38,7 +35,7 @@ public class SchedulingTasks {
 
     }
 
-    @Scheduled(fixedRate = HOUR * 4)
+    //@Scheduled(fixedRate = HOUR * 4)
     public void reportStats() {
 
         // todo more analysis
@@ -56,23 +53,14 @@ public class SchedulingTasks {
     public void loadTimeSeries() {
         logger.info("loadTimeSeries ");
 
-        timeSeriesService.loadTimeSeries();
+        timeSeriesService.loadTimeSeries("BTC");
         logger.info("loadTimeSeries end ");
 
 
     }
 
 
-    @Scheduled(cron = "0 4 17 * * ?")
-    public void getTimeSeries() throws IOException, MissingRequiredQueryParameterException {
-        logger.info("getTimeSeries ");
 
-        timeSeriesService.getTimeSeries();
-
-        logger.info("getTimeSeries  End ");
-
-
-    }
 
 
 }

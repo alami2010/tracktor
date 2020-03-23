@@ -1,0 +1,73 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <script src="https://www.gstatic.com/charts/loader.js" type="text/javascript"></script>
+    <title>Getting Started: Serving Web Content</title>
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type"/>
+
+
+    <script type="text/javascript">
+google.charts.load('current', {packages: ['corechart', 'line']});
+google.charts.setOnLoadCallback(drawBasic);
+
+function drawBasic() {
+
+      var data = new google.visualization.DataTable();
+      data.addColumn('number', 'X');
+      data.addColumn('number', '1H');
+      data.addRows([
+                    [[${data1H}]]
+      ]);
+
+
+      var data2 = new google.visualization.DataTable();
+      data2.addColumn('number', 'X');
+      data2.addColumn('number', '24H');
+      data2.addRows([
+                    [[${data24h}]]
+      ]);
+
+
+       var data3 = new google.visualization.DataTable();
+      data3.addColumn('number', 'X');
+      data3.addColumn('number', '7D');
+      data3.addRows([
+                    [[${data7d}]]
+      ]);
+
+
+
+      var options = {
+        hAxis: {
+          title: 'Time'
+        },
+        vAxis: {
+          title: 'Percent'
+        }
+      };
+
+      var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+
+      chart.draw(data, options);
+
+       var chart2 = new google.visualization.LineChart(document.getElementById('chart_div2'));
+      chart2.draw(data2, options);
+
+
+       var chart3 = new google.visualization.LineChart(document.getElementById('chart_div3'));
+      chart3.draw(data3, options);
+
+    }
+
+    </script>
+</head>
+<body>
+<p th:text="'xHello, ' + ${name} + '!'"/>
+
+
+<div id="chart_div"></div>
+<div id="chart_div2"></div>
+<div id="chart_div3"></div>
+
+</body>
+</html>

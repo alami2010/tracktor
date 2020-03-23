@@ -1,7 +1,7 @@
 package com.api.prices.crypto.cryptoprices.client.alphavantage;
 
-import com.api.prices.crypto.cryptoprices.client.alphavantage.utils.JsonParser;
 import com.api.prices.crypto.cryptoprices.client.alphavantage.response.ErrorResponse;
+import com.api.prices.crypto.cryptoprices.client.alphavantage.utils.JsonParser;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
